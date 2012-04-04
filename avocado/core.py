@@ -69,6 +69,12 @@ class Connection(object):
             kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
 
+            # Encode automatically data for POST/PUT
+            if "data" in kw and \
+                    isinstance(kw.get("data"), (dict, list)) \
+                    and not kw.pop("rawData", False):
+                kw["data"] = json.dumps(kw.get("data"))
+
             return Response(url, req(url, **kw))
 
         return requests_factory_wrapper

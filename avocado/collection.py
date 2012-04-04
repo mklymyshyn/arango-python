@@ -2,6 +2,8 @@ import logging
 
 from .document import Document
 from .exceptions import InvalidCollectionId
+from .utils import json
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,10 @@ class Collections(object):
 
 class Collection(object):
     """Represent single collection with certain name"""
+
+    CREATE_COLLECTION_PATH = "/_api/collection"
+    DELETE_COLLECTION_PATH = "/_api/collection/{0}"
+
     def __init__(self, connection=None, name=None, id=None,
             createCollection=True):
         self.connection = connection
@@ -70,8 +76,14 @@ class Collection(object):
         return self.document
 
     def create(self, waitForSync=False):
-        # TODO: create collection and provide status
-        pass
+        print self.name
+        return self.connection.post(
+            self.CREATE_COLLECTION_PATH,
+            data=dict(
+                waitForSync=waitForSync,
+                name=self.name
+            )
+        )
 
     def load(self):
         # TODO: send request to load collection in memory
@@ -81,7 +93,9 @@ class Collection(object):
         pass
 
     def delete(self):
-        pass
+        return self.connection.delete(
+            self.DELETE_COLLECTION_PATH.format(self.name)
+        )
 
     def rename(self, name=None):
         if not name or name == "":

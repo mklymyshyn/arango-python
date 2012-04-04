@@ -5,6 +5,7 @@ from nose.tools import assert_equal
 
 from avocado.core import Response
 from avocado.collection import Collection, Collections
+from avocado.document import Document
 
 
 class TestCollectionProxy(TestsBase):
@@ -42,4 +43,30 @@ class TestCollectionProxy(TestsBase):
 
 
 class TestCollection(TestsBase):
-    pass
+    def setUp(self):
+        super(TestCollection, self).setUp()
+        self.c = self.conn.collection.test
+
+    def test_cid(self):
+        assert_equal(self.c.cid, "test")
+
+    def test_document(self):
+        assert_equal(
+            Document(collection=self.c).__class__,
+            self.c.document.__class__
+        )
+
+        # check shortcut
+        assert_equal(
+            self.c.d.__class__,
+            self.c.document.__class__
+        )
+
+    def test_create(self):
+        response = self.c.create()
+        url = "{0}{1}".format(
+            self.conn.url,
+            self.c.CREATE_COLLECTION_PATH
+        )
+
+        assert_equal(response.url, url)
