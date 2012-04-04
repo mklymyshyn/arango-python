@@ -1,7 +1,8 @@
 import unittest
 import requests
 
-from nose.tools import assert_equal, assert_not_equal, assert_true
+from nose.tools import assert_equal, assert_not_equal, \
+                        assert_true, assert_false
 
 from mock import patch, Mock
 
@@ -118,4 +119,21 @@ class TestResponse(unittest.TestCase):
                 repr(response.__dict__),
                 self.url
             )
+        )
+
+    def test_parse_response(self):
+        response = self.response(
+            status=200,
+            text='{"status": 200, "message": "test", "value": 1}'
+        )
+
+        assert_false(response.is_error)
+        assert_equal(response.status, 200)
+        assert_equal(
+            response.get("message"),
+            "test"
+        )
+        assert_equal(
+            response.get("value"),
+            1
         )

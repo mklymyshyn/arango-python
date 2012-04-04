@@ -117,6 +117,7 @@ class Response(dict):
             self.status = 500
             self.message = msg
 
+    @property
     def is_error(self):
         if self.status not in [200, 201]:
             return True
