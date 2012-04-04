@@ -11,6 +11,9 @@ __all__ = ("json",)
 
 
 class json(object):
+    """Wrapper around cjson, json and
+    simplejson"""
+
     @classmethod
     def loads(cls, str):
         if hasattr(json_lib, "decode"):
