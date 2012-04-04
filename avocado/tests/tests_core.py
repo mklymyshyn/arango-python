@@ -86,14 +86,9 @@ class TestResponse(TestsBase):
         assert_equal(response.status, 500)
         assert_true(response.is_error)
 
-        assert_equal(
-            response.message,
-            "Can't parse response from AvocadoDB: "\
-            "{0} (URL: {1}, Response: {2})".format(
-                "No JSON object could be decoded",
-                self.url,
-                repr(response.response)
-            )
+        assert_true(
+            "Can't parse response from AvocadoDB: " in \
+            response.message
         )
 
     def test_repr(self):

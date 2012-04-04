@@ -1,8 +1,8 @@
-import json
 import logging
 import requests
 
 from .collection import Collections
+from .utils import json
 
 __all__ = ("Connection", "Response")
 

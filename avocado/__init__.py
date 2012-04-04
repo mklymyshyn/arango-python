@@ -1,10 +1,10 @@
 from .core import Connection
 
 
-def create_connection(**kwargs):
+def create(**kwargs):
     """Connection factory"""
 
     return Connection(**kwargs)
 
-# default connection
-c = create_connection()
+c = Connection()
+collection = c.collection

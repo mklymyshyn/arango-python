@@ -39,3 +39,7 @@ class TestCollectionProxy(TestsBase):
             self.conn.collection().__class__,
             Response
         )
+
+
+class TestCollection(TestsBase):
+    pass
