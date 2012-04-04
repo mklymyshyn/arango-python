@@ -1,10 +1,11 @@
 import unittest
 import requests
 
-from nose.tools import assert_equal, assert_not_equal
-from mock import patch
+from nose.tools import assert_equal, assert_not_equal, assert_true
 
-from avocado.core import Connection
+from mock import patch, Mock
+
+from avocado.core import Connection, Response
 
 
 class TestConnectionInit(unittest.TestCase):
@@ -63,16 +64,58 @@ class TestConnectionRequestsFactory(unittest.TestCase):
 
         for method in self.methods:
             assert_equal(
-                getattr(conn, method)("/").raw.read(),
-                conn.requests_factory(method=method)("/").raw.read()
+                getattr(conn, method)("/"),
+                conn.requests_factory(method=method)("/")
             )
 
     def test_http_methods_execution(self):
         conn = Connection()
 
-        url = "%s%s" % (conn.url, "/")
+        url = "{0}{1}".format(conn.url, "/")
         for method in self.methods:
             assert_equal(
-                getattr(conn, method)("/").raw.read(),
-                getattr(requests, method)(url).raw.read()
+                getattr(conn, method)("/"),
+                Response(
+                    url,
+                    getattr(requests, method)(url)
+                )
             )
+
+
+class TestResponse(unittest.TestCase):
+    def setUp(self):
+        self.conn = Connection()
+        self.url = "{0}{1}".format(self.conn.url, "/document")
+
+    def response(self, status=500, text="text"):
+        response_mock = Mock()
+        response_mock.status_code = status
+        response_mock.text = text
+
+        return Response(self.url, response_mock)
+
+    def test_unparseable_response(self):
+        response = self.response()
+
+        assert_equal(response.status, 500)
+        assert_true(response.is_error)
+
+        assert_equal(
+            response.message,
+            "Can't parse response from AvocadoDB: "\
+            "{0} (URL: {1}, Response: {2})".format(
+                "No JSON object could be decoded",
+                self.url,
+                repr(response.response)
+            )
+        )
+
+    def test_repr(self):
+        response = self.response()
+        assert_equal(
+            str(response),
+            "<Response for {0}: {1}>".format(
+                repr(response.__dict__),
+                self.url
+            )
+        )
