@@ -1,15 +1,16 @@
-import unittest
 import requests
 
 from nose.tools import assert_equal, assert_not_equal, \
                         assert_true, assert_false
 
-from mock import patch, Mock
+from mock import Mock
+
+from .tests_base import TestsBase
 
 from avocado.core import Connection, Response
 
 
-class TestConnectionInit(unittest.TestCase):
+class TestConnectionInit(TestsBase):
 
     def test_basic(self):
         conn = Connection()
@@ -44,21 +45,9 @@ class TestConnectionInit(unittest.TestCase):
         )
 
 
-class TestConnectionRequestsFactory(unittest.TestCase):
+class TestConnectionRequestsFactory(TestsBase):
 
     methods = ["post", "put", "get", "delete"]
-
-    def setUp(self):
-        def stub_url(*args, **kwargs):
-            return "Response"
-
-        for m in self.methods:
-            setattr(self, m, patch("requests.{0}".format(m)))
-            getattr(self, m).start()
-
-    def tearDown(self):
-        for m in self.methods:
-            getattr(self, m).stop()
 
     def test_http_methods_factory(self):
         conn = Connection()
@@ -83,11 +72,7 @@ class TestConnectionRequestsFactory(unittest.TestCase):
             )
 
 
-class TestResponse(unittest.TestCase):
-    def setUp(self):
-        self.conn = Connection()
-        self.url = "{0}{1}".format(self.conn.url, "/document")
-
+class TestResponse(TestsBase):
     def response(self, status=500, text="text"):
         response_mock = Mock()
         response_mock.status_code = status

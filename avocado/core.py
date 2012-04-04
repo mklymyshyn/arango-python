@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 
+from .collection import Collections
 
 __all__ = ("Connection", "Response")
 
@@ -34,6 +35,7 @@ class Connection(object):
         self.is_https = is_https
 
         self.additional_args = kwargs
+        self._collection = None
 
     def __getattr__(self, name):
         """Handling different http methods and wrap requests
@@ -90,6 +92,13 @@ class Connection(object):
             )
 
         return self._url
+
+    @property
+    def collection(self):
+        if not self._collection:
+            self._collection = Collections(self)
+
+        return self._collection
 
     def __repr__(self):
         return "<Connection to AvocadoDB ({0})>".format(self.url)
