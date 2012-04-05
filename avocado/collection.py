@@ -70,6 +70,7 @@ class Collections(object):
 class Collection(object):
     """Represent single collection with certain name"""
 
+    COLLECTION_DETAILS_PATH = "/_api/collection/{0}/{1}"
     CREATE_COLLECTION_PATH = "/_api/collection"
     DELETE_COLLECTION_PATH = "/_api/collection/{0}"
     LOAD_COLLECTION_PATH = "/_api/collection/{0}/load"
@@ -77,6 +78,8 @@ class Collection(object):
     TRUNCATE_COLLECTION_PATH = "/_api/collection/{0}/truncate"
     PARAM_COLLECTION_PATH = "/_api/collection/{0}/parameter"
     RENAME_COLLECTION_PATH = "/_api/collection/{0}/rename"
+
+    INFO_ALLOWED_RESOURCES = ["count", "figures"]
 
     def __init__(self, connection=None, name=None, id=None,
             createCollection=True):
@@ -99,6 +102,14 @@ class Collection(object):
     @property
     def d(self):
         return self.document
+
+    def info(self, resource=""):
+        if resource not in self.INFO_ALLOWED_RESOURCES:
+            resource = ""
+
+        return self.connection.get(
+            self.COLLECTION_DETAILS_PATH.format(self.name, resource)
+        )
 
     def create(self, waitForSync=False):
         return self.connection.post(

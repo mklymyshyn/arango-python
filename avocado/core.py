@@ -122,8 +122,11 @@ class Response(dict):
         self.message = ""
 
         # TODO: load it lazy
+        print response.text
         try:
-            self.update(json.loads(response.text))
+            self.update(dict((k, v) \
+                for k, v in json.loads(response.text).iteritems()))
+
         except (TypeError, ValueError), e:
             msg = "Can't parse response from AvocadoDB:"\
                 " {0} (URL: {1}, Response: {2})".format(
