@@ -1,5 +1,7 @@
 import unittest
 import logging
+import os
+import sys
 
 from nose.tools import assert_equal, assert_false, assert_true
 
@@ -56,3 +58,9 @@ class TestsCollection(unittest.TestCase):
 
         assert_equal(response.get("code"), 200)
         assert_false(response.get("error"))
+
+
+# execute integrational tests only if `INTEGRATIONAL`
+# environemnt variable passed
+if 'INTEGRATIONAL' not in os.environ:
+    TestsCollection = None

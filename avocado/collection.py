@@ -1,8 +1,8 @@
 import logging
 
 from .document import Document
-from .exceptions import InvalidCollectionId
-from .utils import json
+from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
+                        InvalidCollection
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +43,26 @@ class Collections(object):
 
         return self.collections.get(name)
 
+    def rename_collection(self, collection, new_name):
+        if not collection or not issubclass(collection.__class__, Collection):
+            raise InvalidCollection(
+                "Object '{0}' is not subclass of "\
+                "Collection or is None".format(repr(collection))
+            )
+
+        if new_name in self.collections:
+            raise CollectionIdAlreadyExist(
+                "Collection with name '{0}' already exist".format(new_name)
+            )
+
+        if not collection.cid in self.collections:
+            self.collections[collection.cid] = collection
+
+        old_name = collection.cid
+        collection.name = new_name
+        self.collections[new_name] = collection
+        del self.collections[old_name]
+
     def __repr__(self):
         return "<Collections proxy for {0}>".format(self.connection)
 
@@ -52,6 +72,11 @@ class Collection(object):
 
     CREATE_COLLECTION_PATH = "/_api/collection"
     DELETE_COLLECTION_PATH = "/_api/collection/{0}"
+    LOAD_COLLECTION_PATH = "/_api/collection/{0}/load"
+    UNLOAD_COLLECTION_PATH = "/_api/collection/{0}/unload"
+    TRUNCATE_COLLECTION_PATH = "/_api/collection/{0}/truncate"
+    PARAM_COLLECTION_PATH = "/_api/collection/{0}/parameter"
+    RENAME_COLLECTION_PATH = "/_api/collection/{0}/rename"
 
     def __init__(self, connection=None, name=None, id=None,
             createCollection=True):
@@ -76,7 +101,6 @@ class Collection(object):
         return self.document
 
     def create(self, waitForSync=False):
-        print self.name
         return self.connection.post(
             self.CREATE_COLLECTION_PATH,
             data=dict(
@@ -86,11 +110,14 @@ class Collection(object):
         )
 
     def load(self):
-        # TODO: send request to load collection in memory
-        pass
+        return self.connection.put(
+            self.LOAD_COLLECTION_PATH.format(self.name)
+        )
 
     def unload(self, name=None):
-        pass
+        return self.connection.put(
+            self.UNLOAD_COLLECTION_PATH.format(self.name)
+        )
 
     def delete(self):
         return self.connection.delete(
@@ -103,8 +130,25 @@ class Collection(object):
                 "Please, provide correct collection name"
             )
 
+        response = self.connection.put(
+            self.RENAME_COLLECTION_PATH.format(self.name),
+            data=dict(name=name)
+        )
+
+        if not response.is_error:
+            # pass new name to connection
+            # change current id of the collection
+            self.connection.collection.rename_collection(self, name)
+
+        return response
+
     def param(self, **params):
-        pass
+        return self.connection.put(
+            self.PARAM_COLLECTION_PATH.format(self.name),
+            data=params
+        )
 
     def truncate(self):
-        pass
+        return self.connection.put(
+            self.TRUNCATE_COLLECTION_PATH.format(self.name)
+        )

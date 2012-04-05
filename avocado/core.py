@@ -58,6 +58,9 @@ class Connection(object):
         req = getattr(requests, method)
 
         def requests_factory_wrapper(path, **kwargs):
+            """To avoid auto JSON encoding of `data` keywords
+            pass `rawData=True` argument
+            """
             url = "%s%s" % (self.url, path)
             logger.debug(
                 "'{method}' request to '{url}'".format(
@@ -75,7 +78,7 @@ class Connection(object):
                     and not kw.pop("rawData", False):
                 kw["data"] = json.dumps(kw.get("data"))
 
-            return Response(url, req(url, **kw))
+            return Response(url, req(url, **kw), args=kw)
 
         return requests_factory_wrapper
 
@@ -111,10 +114,11 @@ class Connection(object):
 
 
 class Response(dict):
-    def __init__(self, url, response):
+    def __init__(self, url, response, args=None):
         self.url = url
         self.response = response
         self.status = response.status_code
+        self.args = args or {}
         self.message = ""
 
         # TODO: load it lazy
