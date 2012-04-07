@@ -1,12 +1,13 @@
 import requests
 
 from nose.tools import assert_equal, assert_not_equal, \
-                        assert_true, assert_false
+                        assert_true, assert_false, raises
 
 from mock import Mock
 
 from .tests_base import TestsBase
 
+from avocado import create
 from avocado.core import Connection, Response
 
 
@@ -22,6 +23,9 @@ class TestConnectionInit(TestsBase):
         conn.port = 1234
 
         assert_not_equal(conn.url, "https://localhost:1234")
+
+    def test_create_shortcut(self):
+        assert_equal(repr(Connection()), repr(create()))
 
     def test_modify(self):
         conn = Connection()
@@ -70,6 +74,11 @@ class TestConnectionRequestsFactory(TestsBase):
                     getattr(requests, method)(url)
                 )
             )
+
+    @raises(AttributeError)
+    def test_wrong_http_method(self):
+        conn = Connection()
+        conn.wrong("/")
 
 
 class TestResponse(TestsBase):

@@ -1,3 +1,10 @@
+certifi==0.0.8
+chardet==1.0.1
+coverage==3.5.1
+ipdb==0.6.1
+ipython==0.12
 mock==0.8.0
 nose==1.1.2
+python-cjson==1.0.5
 requests==0.11.1
+wsgiref==0.1.2

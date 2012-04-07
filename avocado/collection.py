@@ -144,7 +144,7 @@ class Collection(object):
         )
 
     def rename(self, name=None):
-        if not name or name == "":
+        if name is None or name == "":
             raise InvalidCollectionId(
                 "Please, provide correct collection name"
             )

@@ -1,13 +1,15 @@
 
 from tests_base import TestsBase
 
-from nose.tools import assert_equal, assert_false
+from nose.tools import assert_equal, assert_false, assert_true, raises
 from mock import Mock
 
 from avocado.core import Response
 from avocado.collection import Collection, Collections
 from avocado.document import Document
 from avocado.utils import json
+from avocado.exceptions import CollectionIdAlreadyExist, InvalidCollectionId, \
+                                InvalidCollection
 
 
 class TestCollectionProxy(TestsBase):
@@ -114,6 +116,12 @@ class TestCollection(TestsBase):
 
         assert_equal(response.url, url)
 
+    def test_info(self):
+        assert_equal(
+            self.c.info(resource="wrong"),
+            self.c.info()
+        )
+
     def test_param(self):
         response = self.c.param(
             waitForSync=True
@@ -168,6 +176,28 @@ class TestCollection(TestsBase):
 
         self.c.connection.put = prev_c
 
+    def test_rename_manual_collection(self):
+        c = Collection(connection=self.c.connection, name="manual")
+        self.conn.collection.rename_collection(c, "sample")
+
+        assert_true("sample" in self.conn.collection.collections)
+
+    @raises(CollectionIdAlreadyExist)
+    def test_rename_collection_with_exist_name(self):
+        self.conn.collection.rename_collection(self.c, "test")
+
+    @raises(InvalidCollection)
+    def test_rename_wrong_collection(self):
+        self.conn.collection.rename_collection(object(), "test")
+
+    @raises(InvalidCollectionId)
+    def test_rename_empty_collection(self):
+        self.conn.collection.test.rename("")
+
     def test_count(self):
         assert_equal(self.c.count(), 0)
         assert_equal(self.c.count(), len(self.c))
+
+    def test_repr(self):
+        exp_repr = "<Collection '{0}' for {1}>".format("test", self.conn)
+        assert_equal(repr(self.c), exp_repr)
