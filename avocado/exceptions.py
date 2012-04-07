@@ -1,6 +1,6 @@
 
 __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
-           "InvalidCollection")
+           "InvalidCollection", "DocumentAlreadyCreated")
 
 
 class InvalidCollection(Exception):
@@ -14,3 +14,8 @@ class InvalidCollectionId(Exception):
 class CollectionIdAlreadyExist(Exception):
     """Raise in case you try to rename collection and new name already
     available"""
+
+
+class DocumentAlreadyCreated(Exception):
+    """Raise in case document already exist and you try to
+    call `create` method"""

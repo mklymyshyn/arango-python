@@ -1,11 +1,12 @@
 
 from tests_base import TestsBase
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, raises
 #from mock import Mock
 
 from avocado.document import Document
 from avocado.utils import json
+from avocado.exceptions import DocumentAlreadyCreated
 
 
 class TestDocument(TestsBase):
@@ -36,14 +37,21 @@ class TestDocument(TestsBase):
             collection="test"
         )
 
-        response = self.d.create(body)
+        doc, response = self.d.create(body)
         assert_equal(response.url, url(params))
 
         params.update({
             "createCollection": True
         })
-        response = self.d.create(body, createCollection=True)
+        doc, response = self.d.create(body, createCollection=True)
         assert_equal(response.url, url(params))
 
         test_args = {"data": json.dumps(body)}
         assert_equal(response.args, test_args)
+
+    @raises(DocumentAlreadyCreated)
+    def test_document_create_of_created(self):
+        body = {"value": "test"}
+        doc, response = self.c.d.create(body)
+        doc._id = 1
+        doc.create(body)
