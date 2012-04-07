@@ -1,5 +1,6 @@
 import logging
 import requests
+import urllib
 
 from .collection import Collections
 from .utils import json
@@ -106,6 +107,10 @@ class Connection(object):
             )
 
         return self._url
+
+    def qs(self, path, **params):
+        """Encode params  as GET argumentd and concat it with path"""
+        return "{0}?{1}".format(path, urllib.urlencode(params))
 
     @property
     def collection(self):

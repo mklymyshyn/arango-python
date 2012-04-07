@@ -5,29 +5,30 @@ logger = logging.getLogger(__name__)
 
 class Document(object):
 
-    waitForSync = True
-    path = "/document"
+    CREATE_DOCUMENT_PATH = "/document"
 
-    def __init__(self, collection=None, handle=None, waitForSync=False):
-        self._handle = handle
+    def __init__(self, collection=None):
         self.connection = collection.connection
         self.collection = collection
-        self.waitForSync = waitForSync
+
+        self._handle = None
 
     @property
     def handle(self):
         return self._handle
 
-    def create(self, handle=None, waitForSync=None, **kwargs):
-        params = {
-            "collection": self.collection.handle or self.collection.name,
-            "waitForSync": waitForSync or self.waitForSync,
-            "createCollection": self.collection.createCollection
-        }
+    def create(self, body, createCollection=False):
+        params = dict(collection=self.collection.cid)
 
-        self.connection.post(
-            self.path,
-            params
+        if createCollection == True:
+            params.update(dict(createCollection=True))
+
+        return self.connection.post(
+            self.connection.qs(
+                self.CREATE_DOCUMENT_PATH,
+                **params
+            ),
+            data=body
         )
 
     def update(self, handle=None):

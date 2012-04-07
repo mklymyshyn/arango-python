@@ -167,3 +167,7 @@ class TestCollection(TestsBase):
         self.c.rename(name="test")
 
         self.c.connection.put = prev_c
+
+    def test_count(self):
+        assert_equal(self.c.count(), 0)
+        assert_equal(self.c.count(), len(self.c))

@@ -1,29 +1,21 @@
-import unittest
 import logging
 import os
 
 from nose.tools import assert_equal, assert_false, assert_true
 
-from avocado.core import Connection
+from .tests_integraion_base import TestsIntegration
 
 logger = logging.getLogger(__name__)
 
 
-class TestsCollection(unittest.TestCase):
-    """
-    This suite shoudl work with real AvocadoDB instance
-    so make sure that db is running and available
-    on http://localhost:8529
-    """
-
-    def setUp(self):
-        self.conn = Connection()
-
+class TestsCollection(TestsIntegration):
     def tearDown(self):
+        super(TestsCollection, self).tearDown()
+
         c = self.conn
 
         logger.info("Deleting/Cleaning up collection 'test'")
-        c.collection.test.delete()
+
         c.collection.test_sample.delete()
         c.collection.sample1.delete()
         c.collection.sample2.delete()

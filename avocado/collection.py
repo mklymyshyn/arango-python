@@ -44,7 +44,8 @@ class Collections(object):
         return self.collections.get(name)
 
     def rename_collection(self, collection, new_name):
-        if not collection or not issubclass(collection.__class__, Collection):
+        if collection is None or \
+                not issubclass(collection.__class__, Collection):
             raise InvalidCollection(
                 "Object '{0}' is not subclass of "\
                 "Collection or is None".format(repr(collection))
@@ -119,6 +120,13 @@ class Collection(object):
                 name=self.name
             )
         )
+
+    def count(self):
+        response = self.info(resource="count")
+        return response.get("count", 0)
+
+    def __len__(self):
+        return self.count()
 
     def load(self):
         return self.connection.put(
