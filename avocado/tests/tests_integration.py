@@ -140,7 +140,7 @@ class TestsCollection(unittest.TestCase):
 
         # renew
         response = c.collection.test.param()
-        assert_true(response.get("waitForSync", False))
+        assert_true(response.get("waitForSync", True))
 
         c.collection.test.param(waitForSync=False)
 

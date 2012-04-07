@@ -129,7 +129,12 @@ class TestCollection(TestsBase):
         test_data = {"waitForSync": True}
         test_args = {"data": json.dumps(test_data)}
 
+        response = self.c.param(waitForSync=True)
+        assert_equal(response.url, url)
         assert_equal(response.args, test_args)
+
+        response = self.c.param()
+        assert_equal(response.args, {})
 
     def test_rename(self):
         test_data = {"name": "test1"}

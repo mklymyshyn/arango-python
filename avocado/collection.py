@@ -154,7 +154,9 @@ class Collection(object):
         return response
 
     def param(self, **params):
-        return self.connection.put(
+        action = "get" if params == {} else "put"
+
+        return getattr(self.connection, action)(
             self.PARAM_COLLECTION_PATH.format(self.name),
             data=params
         )

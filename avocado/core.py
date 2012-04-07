@@ -72,6 +72,11 @@ class Connection(object):
             kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
 
+            # NB: don't pass `data` argument in case
+            # it's empty
+            if "data" in kw and kw.get("data") == {}:
+                kw.pop("data")
+
             # Encode automatically data for POST/PUT
             if "data" in kw and \
                     isinstance(kw.get("data"), (dict, list)) \
