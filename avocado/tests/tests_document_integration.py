@@ -32,8 +32,11 @@ class TestsDocument(TestsIntegration):
         count_before = c.collection.test.count()
 
         c.collection.test.document.create(body)
-
         assert_equal(c.collection.test.count(), count_before + 1)
+
+        c.collection.test.document.create(body)
+        assert_equal(c.collection.test.count(), count_before + 2)
+
 
 
 # execute integrational tests only if `INTEGRATIONAL`

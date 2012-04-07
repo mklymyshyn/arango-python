@@ -139,6 +139,19 @@ class TestsCollection(TestsIntegration):
         response = c.collection.test.param()
         assert_false(response.get("waitForSync", False))
 
+    def test_collection_truncate(self):
+        c = self.conn.collection
+        c.test.create()
+
+        c.test.d.create({"doc": 1})
+        c.test.d.create({"doc": 2})
+
+        assert_equal(len(c.test), 2)
+
+        c.test.truncate()
+
+        assert_equal(len(c.test), 0)
+
 
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed
