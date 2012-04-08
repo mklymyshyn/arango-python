@@ -69,18 +69,17 @@ class TestDocument(TestsBase):
 
         doc, response = self.c.d.create(body)
 
-        # requests Response mock
-        response_mock = MagicMock()
-        response_mock.text = json.dumps(dict(
-            _rev=30967598,
-            _id=1,
-            error=False,
-            code=204
-        ))
-        response_mock.status_code = 204
+        patcher = self.response_mock(
+            status_code=204,
+            text=json.dumps(dict(
+                _rev=30967598,
+                _id=1,
+                error=False,
+                code=204
+            )),
+            method="delete"
+        )
 
-        del_mock = lambda *a, **k: response_mock
-        patcher = patch("requests.delete", del_mock)
         patcher.start()
 
         doc._id = 1

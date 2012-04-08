@@ -1,7 +1,7 @@
 import unittest
 import requests
 
-from mock import patch
+from mock import patch, MagicMock
 
 from avocado.core import Connection
 
@@ -24,3 +24,14 @@ class TestsBase(unittest.TestCase):
     def tearDown(self):
         for m in self.methods:
             getattr(self, m).stop()
+
+    def response_mock(self, status_code=200, text='', method="get"):
+        # `requests` Response mock
+        response_mock = MagicMock()
+        response_mock.text = text
+        response_mock.status_code = status_code
+
+        mock_method = lambda *a, **k: response_mock
+        patcher = patch("requests.{0}".format(method), mock_method)
+
+        return patcher
