@@ -132,7 +132,6 @@ class Response(dict):
         self.message = ""
 
         # TODO: load it lazy
-        print response.text
         try:
             self.update(dict((k, v) \
                 for k, v in json.loads(response.text).iteritems()))

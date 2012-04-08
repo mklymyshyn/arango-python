@@ -6,6 +6,9 @@ from mock import patch
 from avocado.core import Connection
 
 
+__all__ = ("TestsBase",)
+
+
 class TestsBase(unittest.TestCase):
 
     methods = ["post", "put", "get", "delete"]

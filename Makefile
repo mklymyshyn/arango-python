@@ -10,3 +10,5 @@ test: tests
 fast:
 	nosetests -v
 
+one:
+	INTEGRATION=1 nosetests -v avocado.tests.$(DST)
