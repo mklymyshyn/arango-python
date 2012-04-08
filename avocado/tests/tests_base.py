@@ -5,7 +5,6 @@ from mock import patch, MagicMock
 
 from avocado.core import Connection
 
-
 __all__ = ("TestsBase",)
 
 

@@ -21,9 +21,12 @@ class Collections(object):
 
     def __call__(self, *args, **kwargs):
         """Return list of collections within current database"""
-        return self.connection.get(
+        response = self.connection.get(
             self.COLLECTIONS_LIST_URL
         )
+
+        names = [c.get("name") for c in response.get("collections", [])]
+        return names, response
 
     def __getattr__(self, name):
         """Lazy init of collection"""

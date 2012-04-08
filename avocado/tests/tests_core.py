@@ -25,7 +25,8 @@ class TestConnectionInit(TestsBase):
         assert_not_equal(conn.url, "https://localhost:1234")
 
     def test_create_shortcut(self):
-        assert_equal(repr(Connection()), repr(create()))
+        assert_equal(repr(Connection().collection), repr(create()))
+        assert_equal(repr(Connection()), repr(create().connection))
 
     def test_modify(self):
         conn = Connection()

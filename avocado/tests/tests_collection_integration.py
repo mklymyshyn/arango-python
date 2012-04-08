@@ -9,9 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestsCollection(TestsIntegration):
-    def tearDown(self):
-        super(TestsCollection, self).tearDown()
-
+    def purge(self):
         c = self.conn
 
         logger.info("Deleting/Cleaning up collection 'test'")
@@ -20,6 +18,10 @@ class TestsCollection(TestsIntegration):
         c.collection.sample1.delete()
         c.collection.sample2.delete()
         c.collection.sample3.delete()
+
+    def tearDown(self):
+        super(TestsCollection, self).tearDown()
+        self.purge()
 
     def test_collection_creation(self):
         c = self.conn
@@ -97,9 +99,7 @@ class TestsCollection(TestsIntegration):
         c.collection.sample3.create()
 
         logger.info("Getting list of collections")
-        response = c.collection()
-
-        names = [r.get("name") for r in response.get("collections")]
+        names, response = c.collection()
 
         for n in ["sample1", "sample2", "sample3"]:
             assert_true(n in names)
@@ -108,9 +108,7 @@ class TestsCollection(TestsIntegration):
         c.collection.sample1.delete()
         c.collection.sample3.delete()
 
-        response = c.collection()
-
-        names = [r.get("name") for r in response.get("collections")]
+        names, response = c.collection()
 
         for n in ["sample1", "sample3"]:
             assert_false(n in names)
