@@ -190,3 +190,19 @@ class TestDocument(TestsBase):
         assert_equal(len(doc.doc), 6)
         assert_equal(doc.doc[1], 2)
         assert_equal(doc.doc[3], 4)
+
+    def test_document_update_complex(self):
+        doc, response = self.create_document({
+            "value": {
+                "level1": {
+                    "level2": [1, 2, 3]
+                }
+            }
+        })
+
+        doc.doc.get("value").get("level1")["level2"] = [3, 4, 5]
+
+        assert_equal(
+            doc.doc.get("value").get("level1").get("level2"),
+            [3, 4, 5]
+        )
