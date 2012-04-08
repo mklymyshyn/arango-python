@@ -5,7 +5,8 @@ from nose.tools import assert_equal, raises, assert_false
 
 from avocado.document import Document
 from avocado.utils import json
-from avocado.exceptions import DocumentAlreadyCreated
+from avocado.exceptions import DocumentAlreadyCreated, \
+                               DocumentIncompatibleDataType
 
 
 __all__ = ("TestDocument",)
@@ -16,6 +17,18 @@ class TestDocument(TestsBase):
         super(TestDocument, self).setUp()
         self.c = self.conn.collection.test
         self.d = self.c.d
+
+    def delete_response_mock(self):
+        return self.response_mock(
+            status_code=204,
+            text=json.dumps(dict(
+                _rev=30967598,
+                _id=1,
+                error=False,
+                code=204
+            )),
+            method="delete"
+        )
 
     def create_response_mock(self, body=None):
         body = body if body != None else {}
@@ -103,17 +116,7 @@ class TestDocument(TestsBase):
         doc, response = self.create_document(body)
         assert_equal(doc._body, body)
 
-        patcher = self.response_mock(
-            status_code=204,
-            text=json.dumps(dict(
-                _rev=30967598,
-                _id=1,
-                error=False,
-                code=204
-            )),
-            method="delete"
-        )
-
+        patcher = self.delete_response_mock()
         patcher.start()
 
         doc._id = 1
@@ -178,7 +181,7 @@ class TestDocument(TestsBase):
 
         assert_equal(doc["value"], 2)
         assert_false("name" in doc.doc)
-        doc.update({"name": "testing", "value": 3})
+        doc.update({"name": "testing", "value": 3}, save=False)
         assert_equal(doc["name"], "testing")
         assert_equal(doc["value"], 3)
 
@@ -186,7 +189,7 @@ class TestDocument(TestsBase):
         assert_equal(len(doc.doc), 3)
         assert_equal(doc.doc[1], 2)
 
-        doc.update([4, 5, 6])
+        doc.update([4, 5, 6], save=False)
         assert_equal(len(doc.doc), 6)
         assert_equal(doc.doc[1], 2)
         assert_equal(doc.doc[3], 4)
@@ -206,3 +209,62 @@ class TestDocument(TestsBase):
             doc.doc.get("value").get("level1").get("level2"),
             [3, 4, 5]
         )
+
+    @raises(DocumentIncompatibleDataType)
+    def test_wrong_type_on_update(self):
+        doc, response = self.create_document({})
+        doc.update(object())
+
+    @raises(DocumentIncompatibleDataType)
+    def test_deleted_doc_update(self):
+        doc, response = self.create_document({})
+
+        patcher = self.delete_response_mock()
+
+        patcher.start()
+        doc.delete()
+        patcher.stop()
+
+        doc.update({})
+
+    def test_save(self):
+        doc, response = self.create_document({})
+
+        patcher = self.response_mock(
+            status_code=201,
+            text=json.dumps(dict(
+                _rev=30967599,
+                _id=1,
+                error=False,
+                code=201
+            )),
+            method="put"
+        )
+
+        patcher.start()
+
+        test_data = {
+            "name": "sample"
+        }
+        response = doc.update(test_data)
+
+        url = "{0}{1}".format(
+            doc.connection.url,
+            doc.UPDATE_DOCUMENT_PATH.format(doc.id)
+        )
+
+        assert_equal(doc.rev, 30967599)
+        assert_equal(response.url, url)
+        assert_equal(
+            response.args,
+            dict(data=json.dumps(test_data))
+        )
+
+        # call manuall save() method
+        doc, response = self.create_document({})
+
+        doc.update(test_data, save=False)
+        doc.save()
+
+        assert_equal(doc.rev, 30967599)
+        patcher.stop()

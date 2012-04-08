@@ -1,6 +1,7 @@
 
 __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
-           "InvalidCollection", "DocumentAlreadyCreated")
+           "InvalidCollection", "DocumentAlreadyCreated",
+           "DocumentIncompatibleDataType")
 
 
 class InvalidCollection(Exception):
@@ -19,3 +20,8 @@ class CollectionIdAlreadyExist(Exception):
 class DocumentAlreadyCreated(Exception):
     """Raise in case document already exist and you try to
     call `create` method"""
+
+
+class DocumentIncompatibleDataType(Exception):
+    """Raises in case you trying to update document
+    with non-dict or non-list data"""

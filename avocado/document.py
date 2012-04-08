@@ -1,6 +1,7 @@
 import logging
 
-from .exceptions import DocumentAlreadyCreated
+from .exceptions import DocumentAlreadyCreated, \
+                        DocumentIncompatibleDataType
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,6 @@ class Document(object):
 
     def __setitem__(self, name, value):
         """Get element by dict-like key"""
-        if self._body == None:
-            self._body = {}
 
         self._body[name] = value
 
@@ -85,23 +84,40 @@ class Document(object):
 
         return self, response
 
-    def update(self, newData):
-        if isinstance(self._body, dict):
+    def update(self, newData, save=True, **kwargs):
+        if issubclass(type(self._body), dict) and \
+                issubclass(type(newData), dict):
             self._body.update(newData)
-        elif isinstance(self._body, list):
+        elif issubclass(type(self._body), list) and \
+                issubclass(type(newData), list):
             self._body.extend(newData)
         else:
-            return False
+            raise DocumentIncompatibleDataType(
+                "You trying to update document `{0}` with "\
+                "incompatible datat type {1}".format(
+                    self.id,
+                    repr(newData)
+                )
+            )
+
+        if save == True:
+            return self.save(**kwargs)
 
         return True
 
-    def save(self, handle=None):
-        #respose = self.connection.put(
-        #    self.UPDATE_DOCUMENT_PATH.format(self.id)
-        #)
-        pass
+    def save(self):
+        response = self.connection.put(
+            self.UPDATE_DOCUMENT_PATH.format(self.id),
+            data=self.doc
+        )
 
-    def delete(self, handle=None):
+        # update revision of the document
+        if response.get("code", 500) in [201, 202]:
+            self._rev = response.get("_rev")
+
+        return response
+
+    def delete(self):
         response = self.connection.delete(
             self.DELETE_DOCUMENT_PATH.format(self.id)
         )

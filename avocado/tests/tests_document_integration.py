@@ -13,6 +13,12 @@ __all__ = ("TestsDocument",)
 
 class TestsDocument(TestsIntegration):
 
+    def tearDown(self):
+        super(TestsDocument, self).tearDown()
+
+        c = self.conn
+        c.collection.test.delete()
+
     def test_document_creation(self):
         c = self.conn
 
@@ -37,6 +43,14 @@ class TestsDocument(TestsIntegration):
         c.collection.test.document.create(body)
         assert_equal(c.collection.test.count(), count_before + 2)
 
+    def test_document_deletion(self):
+        c = self.conn
+
+        logger.info("Creating collection 'test'")
+        c.collection.test.create()
+
+        logger.info("Creating sample document")
+        doc, response = c.collection.test.document.create({})
 
 
 # execute integrational tests only if `INTEGRATIONAL`
