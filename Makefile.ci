@@ -1,0 +1,38 @@
+
+VOCA_BUILDER=/home/maxk/builders/avocado.mk
+
+ENV_ID=env
+ENV=source $(ENV_ID)/bin/activate &&
+
+NOSE=`type -p nosetests`
+
+ifndef PYTHON_BIN
+	PYTHON_BIN=$(shell type -p python)
+endif
+
+.PHONY: test prepare flush
+
+env:
+	virtualenv --no-site-packages -p $(PYTHON_BIN) $(ENV_ID)
+	pip install -r requirements.txt --upgrade
+
+test:
+	mkdir ./junit-reports
+
+	# execute tests
+	$(ENV) coverage run -a --rcfile=coverage.rc \
+		$(NOSE) -v --with-xunit \
+		--xunit-file=./junit-reports/avocado.xml
+
+	# store coverage report in Cobertura format
+	$(ENV) coverage xml --rcfile=coverage.rc -o ./junit-reports/coverage.xml
+
+prepare:
+	make -f $(VOCA_BUILDER) all || echo "Current HEAD already built."
+	make -f $(VOCA_BUILDER) start
+
+flush:
+	make -f $(VOCA_BUILDER) stop
+
+
+all: env prepare test flush

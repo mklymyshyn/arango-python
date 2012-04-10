@@ -1,0 +1,12 @@
+[run]
+branch = True
+include = avocado/*
+omit = env/*,coverage/*
+
+[report]
+exclude_lines=
+    raise NotImplementedError
+    if __name__ == .__main__.
+include = avocado/*
+omit = env/*,coverage/*
+
