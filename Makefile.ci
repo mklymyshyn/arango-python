@@ -14,7 +14,7 @@ endif
 
 env:
 	virtualenv --no-site-packages -p $(PYTHON_BIN) $(ENV_ID)
-	pip install -r requirements.txt --upgrade
+	$(ENV) pip install -r requirements.txt --upgrade
 
 test:
 	mkdir ./junit-reports
