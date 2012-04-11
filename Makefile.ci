@@ -11,7 +11,7 @@ ifndef PYTHON_BIN
 	PYTHON_BIN=$(shell type -p python)
 endif
 
-.PHONY: test prepare flush
+.PHONY: test 
 
 env:
 	virtualenv --no-site-packages -p $(PYTHON_BIN) $(ENV_ID)
@@ -28,12 +28,5 @@ test:
 	# store coverage report in Cobertura format
 	$(ENV) coverage xml --rcfile=coverage.rc -o ./junit-reports/coverage.xml
 
-prepare:
-	make -f $(VOCA_BUILDER) all || echo "Current HEAD already built."
-	make -f $(VOCA_BUILDER) start
 
-flush:
-	make -f $(VOCA_BUILDER) stop
-
-
-all: env prepare test flush
+all: env test
