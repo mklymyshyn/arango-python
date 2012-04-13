@@ -1,7 +1,5 @@
 SHELL=/bin/bash
 
-VOCA_BUILDER=/home/maxk/builders/avocado.mk
-
 ENV_ID=env
 ENV=source $(ENV_ID)/bin/activate &&
 
@@ -11,11 +9,15 @@ ifndef PYTHON_BIN
 	PYTHON_BIN=$(shell type -p python)
 endif
 
-.PHONY: test 
+.PHONY: test
 
 env:
-	virtualenv --no-site-packages -p $(PYTHON_BIN) $(ENV_ID)
-	$(ENV) pip install -r requirements.txt --upgrade
+	python bootstrap.py \
+		--no-site \
+		--disable-bootstrap-update \
+		--upgrade \
+		--python=$(PYTHON_BIN) \
+		--virtualenv=$(ENV_ID)
 
 test:
 	mkdir ./junit-reports
