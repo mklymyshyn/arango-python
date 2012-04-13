@@ -17,7 +17,8 @@ env:
 		--disable-bootstrap-update \
 		--upgrade \
 		--python=$(PYTHON_BIN) \
-		--virtualenv=$(ENV_ID)
+		--virtualenv=$(ENV_ID) || \
+			echo "Some error while virtualenv init"
 
 test:
 	mkdir ./junit-reports
