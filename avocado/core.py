@@ -70,7 +70,7 @@ class Connection(object):
                 ))
 
             # Py 2.7 only, yeah!
-            kw = {k: v for k, v in self.additional_args}
+            kw = dict((k, v) for k, v in self.additional_args)
             kw.update(kwargs)
 
             # NB: don't pass `data` argument in case
