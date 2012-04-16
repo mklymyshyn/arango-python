@@ -1,7 +1,8 @@
 
 __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "InvalidCollection", "DocumentAlreadyCreated",
-           "DocumentIncompatibleDataType")
+           "DocumentIncompatibleDataType", "WrongIndexType",
+           "EmptyFields")
 
 
 class InvalidCollection(Exception):
@@ -25,3 +26,11 @@ class DocumentAlreadyCreated(Exception):
 class DocumentIncompatibleDataType(Exception):
     """Raises in case you trying to update document
     with non-dict or non-list data"""
+
+
+class WrongIndexType(Exception):
+    """Raises in case index type is undefined"""
+
+
+class EmptyFields(Exception):
+    """Raises in case no fields for index provied"""

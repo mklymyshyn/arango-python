@@ -6,6 +6,9 @@ from .exceptions import DocumentAlreadyCreated, \
 logger = logging.getLogger(__name__)
 
 
+__all__ = ("Document",)
+
+
 class Document(object):
 
     DOCUMENT_PATH = "/document"

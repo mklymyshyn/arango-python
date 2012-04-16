@@ -1,6 +1,7 @@
 import logging
 
 from .document import Document
+from .index import Index
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
                         InvalidCollection
 
@@ -90,6 +91,7 @@ class Collection(object):
         self.connection = connection
         self.name = name
         self._id = id
+        self._index = None
         self.createCollection = createCollection
 
     def __repr__(self):
@@ -98,6 +100,13 @@ class Collection(object):
     @property
     def cid(self):
         return self.name
+
+    @property
+    def index(self):
+        if not self._index:
+            self._index = Index(self)
+
+        return self._index
 
     @property
     def document(self):

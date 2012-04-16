@@ -136,7 +136,7 @@ class Response(dict):
             self.update(dict((k, v) \
                 for k, v in json.loads(response.text).iteritems()))
 
-        except (TypeError, ValueError), e:
+        except (TypeError, ValueError) as e:
             msg = "Can't parse response from AvocadoDB:"\
                 " {0} (URL: {1}, Response: {2})".format(
                 str(e),

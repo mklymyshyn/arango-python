@@ -1,5 +1,5 @@
 
-from tests_base import TestsBase
+from .tests_base import TestsBase
 
 from nose.tools import assert_equal, raises, assert_false
 
