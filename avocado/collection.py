@@ -1,6 +1,7 @@
 import logging
 
 from .document import Document
+from .edge import Edge
 from .index import Index
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
                         InvalidCollection
@@ -113,8 +114,16 @@ class Collection(object):
         return Document(collection=self)
 
     @property
+    def edge(self):
+        return Edge(collection=self)
+
+    @property
     def d(self):
         return self.document
+
+    @property
+    def e(self):
+        return self.edge
 
     def info(self, resource=""):
         if resource not in self.INFO_ALLOWED_RESOURCES:

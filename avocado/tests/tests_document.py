@@ -9,14 +9,10 @@ from avocado.exceptions import DocumentAlreadyCreated, \
                                DocumentIncompatibleDataType
 
 
-__all__ = ("TestDocument",)
+__all__ = ("TestDocument", "TestDocumentBase")
 
 
-class TestDocument(TestsBase):
-    def setUp(self):
-        super(TestDocument, self).setUp()
-        self.c = self.conn.collection.test
-        self.d = self.c.d
+class TestDocumentBase(TestsBase):
 
     def delete_response_mock(self):
         return self.response_mock(
@@ -30,10 +26,10 @@ class TestDocument(TestsBase):
             method="delete"
         )
 
-    def create_response_mock(self, body=None):
+    def create_response_mock(self, _id=None, body=None):
         body = body if body != None else {}
         defaults = dict(
-            _rev=30967598,
+            _rev=_id or 30967598,
             _id=1,
             error=False,
             code=201
@@ -49,14 +45,21 @@ class TestDocument(TestsBase):
 
         return patcher
 
-    def create_document(self, body):
-        patcher = self.create_response_mock()
+    def create_document(self, body, _id=None):
+        patcher = self.create_response_mock(_id=_id)
         patcher.start()
 
         doc, response = self.c.d.create(body)
         patcher.stop()
 
         return doc, response
+
+
+class TestDocument(TestDocumentBase):
+    def setUp(self):
+        super(TestDocument, self).setUp()
+        self.c = self.conn.collection.test
+        self.d = self.c.d
 
     def test_collection_shortcut(self):
         assert_equal(type(self.d), Document)

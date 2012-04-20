@@ -2,7 +2,7 @@
 __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "InvalidCollection", "DocumentAlreadyCreated",
            "DocumentIncompatibleDataType", "WrongIndexType",
-           "EmptyFields")
+           "EmptyFields", "EdgeAlreadyCreated")
 
 
 class InvalidCollection(Exception):
@@ -34,3 +34,7 @@ class WrongIndexType(Exception):
 
 class EmptyFields(Exception):
     """Raises in case no fields for index provied"""
+
+
+class EdgeAlreadyCreated(Exception):
+  """Raises in case Edge have identifier and already created"""
