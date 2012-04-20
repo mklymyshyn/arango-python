@@ -55,11 +55,9 @@ class TestsIndexIntegration(TestsIntegration):
         assert_equal(str(index.get("id")), str(key))
 
     def test_index_delete(self):
-        self.cl.index.create(["value"])
-        ids = self.cl.index()[0]
-        key = filter(lambda k: k[:2] != "/0", ids.keys())[0]
+        key = self.cl.index.create(["value"]).get("id")
+        count = len(self.cl.index()[0])
 
-        count = len(ids)
         rs, resp = self.cl.index.delete(key)
         assert_equal(len(self.cl.index()[0]), count - 1)
 
