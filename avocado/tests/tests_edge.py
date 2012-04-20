@@ -92,11 +92,11 @@ class TestEdge(TestDocumentBase):
             "to": doc2.id
         }
 
-        doc, response = self.create_edge(doc1, doc2, body)
+        edge, response = self.create_edge(doc1, doc2, body)
         assert_equal(response.url, url(params))
 
         for k in body.keys():
-            assert_true(k in doc._body)
+            assert_true(k in edge._body)
 
     @raises(EdgeAlreadyCreated)
     def test_edge_create_of_created(self):
@@ -104,3 +104,32 @@ class TestEdge(TestDocumentBase):
         edge, response = self.c.e.create(None, None, body)
         edge._id = 1
         edge.create(None, None, body)
+
+    def test_get_edge_fields(self):
+        body = {
+            "array": [1, 2, 3],
+            "options": None,
+            "number": 5.5,
+            "tree": {
+                "sample1": "1",
+                "sample2": "2"
+            }
+        }
+
+        doc1, r1 = self.create_document(123, body)
+        doc2, r2 = self.create_document(234, body)
+
+        edge, response = self.create_edge(doc1, doc2, body)
+
+        assert_equal(
+            edge.get("array", default=None),
+            [1, 2, 3]
+        )
+
+        for key in body.keys():
+            assert_true(key in edge.get().keys())
+
+        assert_equal(
+            edge["tree"]["sample1"],
+            body["tree"]["sample1"]
+        )
