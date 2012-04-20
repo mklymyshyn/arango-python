@@ -12,6 +12,7 @@ __all__ = ("Edge",)
 class Edge(object):
 
     EDGE_PATH = "/edge"
+    DELETE_EDGE_PATH = "/edge/{0}"
 
     def __init__(self, collection=None):
         self.connection = collection.connection
@@ -105,3 +106,14 @@ class Edge(object):
             self.parse_edge_response(response)
 
         return self, response
+
+    def delete(self):
+        response = self.connection.delete(
+            self.DELETE_EDGE_PATH.format(self.id)
+        )
+
+        if response.get("code", 500) == 204:
+            self.parse_edge_response({})
+            self._body = None
+
+        return response

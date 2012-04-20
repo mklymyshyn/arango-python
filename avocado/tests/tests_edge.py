@@ -133,3 +133,34 @@ class TestEdge(TestDocumentBase):
             edge["tree"]["sample1"],
             body["tree"]["sample1"]
         )
+
+    def test_edge_deletion(self):
+        body = {"value": "test"}
+        url = "{0}{1}".format(
+            self.conn.url,
+            self.e.DELETE_EDGE_PATH.format("1"),
+        )
+
+        doc1, r1 = self.create_document(123, body)
+        doc2, r2 = self.create_document(234, body)
+
+        edge, response = self.create_edge(doc1, doc2, body)
+
+        patcher = self.delete_edge_response_mock()
+        patcher.start()
+
+        edge._id = 1
+        edge._rev = 1
+        edge._body = {}
+
+        response = edge.delete()
+
+        assert_equal(response.url, url)
+
+        assert_equal(edge.id, None)
+        assert_equal(edge.rev, None)
+        assert_equal(edge.edge, None)
+        assert_equal(edge.from_document, None)
+        assert_equal(edge.to_document, None)
+
+        patcher.stop()
