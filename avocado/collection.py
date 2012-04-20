@@ -81,7 +81,7 @@ class Collection(object):
     LOAD_COLLECTION_PATH = "/_api/collection/{0}/load"
     UNLOAD_COLLECTION_PATH = "/_api/collection/{0}/unload"
     TRUNCATE_COLLECTION_PATH = "/_api/collection/{0}/truncate"
-    PARAM_COLLECTION_PATH = "/_api/collection/{0}/parameter"
+    PARAM_COLLECTION_PATH = "/_api/collection/{0}/properties"
     RENAME_COLLECTION_PATH = "/_api/collection/{0}/rename"
 
     INFO_ALLOWED_RESOURCES = ["count", "figures"]

@@ -10,10 +10,10 @@ __all__ = ("Index",)
 class Index(object):
     """Interface to work with Indexes"""
 
-    CREATE = "/_api/index/{0}"
-    READ = "/_api/index/{0}/{1}"
-    DELETE = "/_api/index/{0}/{1}"
-    INDEXES = "/_api/index/{0}"
+    CREATE = "/_api/index/?collection={0}"
+    READ = "/_api/index/{1}?collection={0}"
+    DELETE = "/_api/index/{1}?collection={0}"
+    INDEXES = "/_api/index/?collection={0}"
 
     GEO, HASH, SKIPLIST = ("geo", "hash", "skiplist")
     INDEX_TYPES = (GEO, HASH, SKIPLIST)
