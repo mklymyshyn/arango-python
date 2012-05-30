@@ -5,14 +5,14 @@ import urllib
 from .collection import Collections
 from .utils import json
 
-__all__ = ("Connection", "Response")
+__all__ = ("Connection", "Response", "Resultset")
 
 
 logger = logging.getLogger(__name__)
 
 
 class Connection(object):
-    """Connetion to AvocadoDB
+    """Connetion to ArangoDB
     """
 
     _prefix = "http://"
@@ -120,7 +120,7 @@ class Connection(object):
         return self._collection
 
     def __repr__(self):
-        return "<Connection to AvocadoDB ({0})>".format(self.url)
+        return "<Connection to ArangoDB ({0})>".format(self.url)
 
 
 class Response(dict):
@@ -137,7 +137,7 @@ class Response(dict):
                 for k, v in json.loads(response.text).iteritems()))
 
         except (TypeError, ValueError) as e:
-            msg = "Can't parse response from AvocadoDB:"\
+            msg = "Can't parse response from ArangoDB:"\
                 " {0} (URL: {1}, Response: {2})".format(
                 str(e),
                 url,
@@ -157,3 +157,42 @@ class Response(dict):
 
     def __repr__(self):
         return "<Response for {0}: {1}>".format(repr(self.__dict__), self.url)
+
+
+class Resultset(object):
+    def __init__(self, base, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
+        self._limit = None
+        self._offset = 0
+
+        self.base = base
+        self.results = []
+        self.position = 0
+
+    def limit(self, limit=0):
+        self._limit = limit
+        return self
+
+    def offset(self, offset=0):
+        self._offset = offset
+        return self
+
+    def first(self):
+        """Return only first element from response"""
+        self.limit(1)
+        try:
+            return list(self)[0]
+        except IndexError:
+            return None
+
+    def last(self):
+        """Return last element from response"""
+        try:
+            return list(self)[-1]
+        except IndexError:
+            return None
+
+    def __iter__(self):
+        return self.base.query(self)

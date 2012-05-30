@@ -2,10 +2,10 @@
 from .tests_document import TestDocumentBase
 
 from nose.tools import assert_equal, assert_true, raises
-from avocado.edge import Edge
-from avocado.utils import json
+from arango.edge import Edge, Edges
+from arango.utils import json
 
-from avocado.exceptions import EdgeAlreadyCreated
+from arango.exceptions import EdgeAlreadyCreated
 
 
 __all__ = ("TestEdge",)
@@ -15,7 +15,6 @@ class TestEdge(TestDocumentBase):
     def setUp(self):
         super(TestEdge, self).setUp()
         self.c = self.conn.collection.test
-        self.e = self.c.e
 
     def delete_edge_response_mock(self):
         return self.response_mock(
@@ -56,18 +55,17 @@ class TestEdge(TestDocumentBase):
         patcher = self.create_edge_response_mock(body=body)
         patcher.start()
 
-        doc, response = self.c.e.create(
+        edge = self.c.edges.create(
             from_doc,
             to_doc,
             body
         )
         patcher.stop()
 
-        return doc, response
+        return edge, edge.response
 
     def test_collection_shortcut(self):
-        assert_equal(type(self.e), Edge)
-        assert_equal(type(self.e), type(self.c.edge))
+        assert_equal(type(self.c.edges), Edges)
 
     def test_edge_create(self):
         body = dict(
@@ -75,13 +73,13 @@ class TestEdge(TestDocumentBase):
             num=1
         )
 
-        doc1, r1 = self.create_document(123, body)
-        doc2, r2 = self.create_document(234, body)
+        doc1 = self.create_document(123, body)
+        doc2 = self.create_document(234, body)
 
         url = lambda p: "{0}{1}".format(
             self.conn.url,
             self.conn.qs(
-                self.e.EDGE_PATH,
+                Edge.EDGE_PATH,
                 **p
             )
         )
@@ -101,7 +99,7 @@ class TestEdge(TestDocumentBase):
     @raises(EdgeAlreadyCreated)
     def test_edge_create_of_created(self):
         body = {"value": "test"}
-        edge, response = self.c.e.create(None, None, body)
+        edge = self.c.edges.create(None, None, body)
         edge._id = 1
         edge.create(None, None, body)
 
@@ -116,8 +114,8 @@ class TestEdge(TestDocumentBase):
             }
         }
 
-        doc1, r1 = self.create_document(123, body)
-        doc2, r2 = self.create_document(234, body)
+        doc1 = self.create_document(123, body)
+        doc2 = self.create_document(234, body)
 
         edge, response = self.create_edge(doc1, doc2, body)
 
@@ -138,11 +136,11 @@ class TestEdge(TestDocumentBase):
         body = {"value": "test"}
         url = "{0}{1}".format(
             self.conn.url,
-            self.e.DELETE_EDGE_PATH.format("1"),
+            Edge.DELETE_EDGE_PATH.format("1"),
         )
 
-        doc1, r1 = self.create_document(123, body)
-        doc2, r2 = self.create_document(234, body)
+        doc1 = self.create_document(123, body)
+        doc2 = self.create_document(234, body)
 
         edge, response = self.create_edge(doc1, doc2, body)
 
@@ -153,9 +151,8 @@ class TestEdge(TestDocumentBase):
         edge._rev = 1
         edge._body = {}
 
-        response = edge.delete()
-
-        assert_equal(response.url, url)
+        assert_true(edge.delete())
+        assert_equal(edge.response.url, url)
 
         assert_equal(edge.id, None)
         assert_equal(edge.rev, None)

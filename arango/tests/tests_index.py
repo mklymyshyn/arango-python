@@ -4,8 +4,8 @@ from nose.tools import assert_equal, raises, assert_true, assert_false
 from .tests_base import TestsBase
 
 
-from avocado.utils import json
-from avocado.exceptions import EmptyFields, WrongIndexType
+from arango.utils import json
+from arango.exceptions import EmptyFields, WrongIndexType
 
 
 __all__ = ("TestIndex",)

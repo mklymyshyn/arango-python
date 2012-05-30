@@ -1,7 +1,7 @@
 import logging
 
-from .document import Document
-from .edge import Edge
+from .document import Documents
+from .edge import Edges
 from .index import Index
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
                         InvalidCollection
@@ -92,8 +92,12 @@ class Collection(object):
         self.connection = connection
         self.name = name
         self._id = id
-        self._index = None
+
         self.createCollection = createCollection
+
+        self._documents = None
+        self._edges = None
+        self._index = None
 
     def __repr__(self):
         return "<Collection '{0}' for {1}>".format(self.name, self.connection)
@@ -110,20 +114,22 @@ class Collection(object):
         return self._index
 
     @property
-    def document(self):
-        return Document(collection=self)
+    def documents(self):
+        if not self._documents:
+            self._documents = Documents(collection=self)
+
+        return self._documents
 
     @property
-    def edge(self):
-        return Edge(collection=self)
+    def edges(self):
+        if self._edges == None:
+            self._edges = Edges(collection=self)
+
+        return self._edges
 
     @property
-    def d(self):
-        return self.document
-
-    @property
-    def e(self):
-        return self.edge
+    def docs(self):
+        return self.documents
 
     def info(self, resource=""):
         if resource not in self.INFO_ALLOWED_RESOURCES:

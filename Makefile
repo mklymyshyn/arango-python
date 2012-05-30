@@ -3,7 +3,10 @@
 
 coverage:
 	@echo "Starting ..."
-	INTEGRATION=1 nosetests -v --cover-html --cover-html-dir=./coverage --with-coverage --cover-package=avocado
+	INTEGRATION=1 nosetests -v \
+		--cover-html \
+		--cover-html-dir=./coverage \
+		--with-coverage --cover-package=arango
 
 tests:
 	INTEGRATION=1 nosetests -v
@@ -14,4 +17,4 @@ fast:
 	nosetests -v
 
 one:
-	INTEGRATION=1 nosetests -v avocado.tests.$(DST)
+	INTEGRATION=1 nosetests -v arango.tests.$(DST)

@@ -7,8 +7,8 @@ from mock import Mock
 
 from .tests_base import TestsBase
 
-from avocado import create
-from avocado.core import Connection, Response
+from arango import create
+from arango.core import Connection, Response
 
 
 class TestConnectionInit(TestsBase):
@@ -46,7 +46,7 @@ class TestConnectionInit(TestsBase):
 
         assert_equal(
             str(conn),
-            "<Connection to AvocadoDB (http://localhost:8529)>"
+            "<Connection to ArangoDB (http://localhost:8529)>"
         )
 
 
@@ -97,7 +97,7 @@ class TestResponse(TestsBase):
         assert_true(response.is_error)
 
         assert_true(
-            "Can't parse response from AvocadoDB: " in \
+            "Can't parse response from ArangoDB: " in \
             response.message
         )
 

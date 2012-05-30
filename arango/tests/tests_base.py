@@ -3,7 +3,7 @@ import requests
 
 from mock import patch, MagicMock
 
-from avocado.core import Connection
+from arango.core import Connection
 
 __all__ = ("TestsBase",)
 

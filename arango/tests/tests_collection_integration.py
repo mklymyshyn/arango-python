@@ -30,7 +30,7 @@ class TestsCollection(TestsIntegration):
 
         response = c.collection.test.create()
         assert_equal(response.get("status"), 3)
-        assert_equal(response.get("code"), 200)
+        assert_equal(response.status, 200)
 
         assert_false(response.get("waitForSync"))
         assert_false(response.get("error"))
@@ -141,8 +141,8 @@ class TestsCollection(TestsIntegration):
         c = self.conn.collection
         c.test.create()
 
-        c.test.d.create({"doc": 1})
-        c.test.d.create({"doc": 2})
+        c.test.docs.create({"doc": 1})
+        c.test.docs.create({"doc": 2})
 
         assert_equal(len(c.test), 2)
 

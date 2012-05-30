@@ -2,7 +2,9 @@
 __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "InvalidCollection", "DocumentAlreadyCreated",
            "DocumentIncompatibleDataType", "WrongIndexType",
-           "EmptyFields", "EdgeAlreadyCreated")
+           "EmptyFields", "EdgeAlreadyCreated",
+           "DocumentNotFound", "EdgeNotYetCreated",
+           "EdgeIncompatibleDataType")
 
 
 class InvalidCollection(Exception):
@@ -28,6 +30,10 @@ class DocumentIncompatibleDataType(Exception):
     with non-dict or non-list data"""
 
 
+class DocumentNotFound(Exception):
+    """Raises in case Document not exist in database"""
+
+
 class WrongIndexType(Exception):
     """Raises in case index type is undefined"""
 
@@ -37,4 +43,12 @@ class EmptyFields(Exception):
 
 
 class EdgeAlreadyCreated(Exception):
-  """Raises in case Edge have identifier and already created"""
+    """Raises in case Edge have identifier and already created"""
+
+
+class EdgeNotYetCreated(Exception):
+    """Raises in case you try to update Edge which is not created"""
+
+
+class EdgeIncompatibleDataType(Exception):
+    """Raises when you provide new body not None or not dict"""

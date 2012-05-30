@@ -1,7 +1,8 @@
 import logging
 import os
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true, \
+                       assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -37,10 +38,10 @@ class TestsDocument(TestsIntegration):
         c.collection.test.create()
         count_before = c.collection.test.count()
 
-        c.collection.test.document.create(body)
+        c.collection.test.documents.create(body)
         assert_equal(c.collection.test.count(), count_before + 1)
 
-        c.collection.test.document.create(body)
+        c.collection.test.documents.create(body)
         assert_equal(c.collection.test.count(), count_before + 2)
 
     def test_document_deletion(self):
@@ -50,7 +51,19 @@ class TestsDocument(TestsIntegration):
         c.collection.test.create()
 
         logger.info("Creating sample document")
-        doc, response = c.collection.test.document.create({})
+
+        doc = c.collection.test.documents.create([1])
+
+        assert_not_equal(doc, None)
+
+        count = c.collection.test.documents.count()
+
+        assert_true(doc.delete())
+
+        assert_equal(
+            c.collection.test.documents.count(),
+            count - 1
+        )
 
 
 # execute integrational tests only if `INTEGRATIONAL`

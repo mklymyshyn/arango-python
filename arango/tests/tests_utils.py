@@ -1,7 +1,7 @@
 import unittest
 
 from nose.tools import assert_equal
-from avocado.utils import json
+from arango.utils import json
 
 
 class TestsUtils(unittest.TestCase):

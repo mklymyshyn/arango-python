@@ -4,11 +4,11 @@ from tests_base import TestsBase
 from nose.tools import assert_equal, assert_false, assert_true, raises
 from mock import Mock
 
-from avocado.core import Response
-from avocado.collection import Collection, Collections
-from avocado.document import Document
-from avocado.utils import json
-from avocado.exceptions import CollectionIdAlreadyExist, InvalidCollectionId, \
+from arango.core import Response
+from arango.collection import Collection, Collections
+from arango.document import Documents
+from arango.utils import json
+from arango.exceptions import CollectionIdAlreadyExist, InvalidCollectionId, \
                                 InvalidCollection
 
 
@@ -60,18 +60,6 @@ class TestCollection(TestsBase):
 
     def test_cid(self):
         assert_equal(self.c.cid, "test")
-
-    def test_document(self):
-        assert_equal(
-            Document(collection=self.c).__class__,
-            self.c.document.__class__
-        )
-
-        # check shortcut
-        assert_equal(
-            self.c.d.__class__,
-            self.c.document.__class__
-        )
 
     def test_create(self):
         response = self.c.create()

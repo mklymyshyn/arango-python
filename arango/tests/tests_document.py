@@ -3,9 +3,9 @@ from .tests_base import TestsBase
 
 from nose.tools import assert_equal, raises, assert_false
 
-from avocado.document import Document
-from avocado.utils import json
-from avocado.exceptions import DocumentAlreadyCreated, \
+from arango.document import Document, Documents
+from arango.utils import json
+from arango.exceptions import DocumentAlreadyCreated, \
                                DocumentIncompatibleDataType
 
 
@@ -16,7 +16,7 @@ class TestDocumentBase(TestsBase):
 
     def delete_response_mock(self):
         return self.response_mock(
-            status_code=204,
+            status_code=200,
             text=json.dumps(dict(
                 _rev=30967598,
                 _id=1,
@@ -49,21 +49,21 @@ class TestDocumentBase(TestsBase):
         patcher = self.create_response_mock(_id=_id)
         patcher.start()
 
-        doc, response = self.c.d.create(body)
+        doc = self.c.docs.create(body)
         patcher.stop()
 
-        return doc, response
+        return doc
 
 
 class TestDocument(TestDocumentBase):
     def setUp(self):
         super(TestDocument, self).setUp()
         self.c = self.conn.collection.test
-        self.d = self.c.d
+        self.d = self.c.docs
 
     def test_collection_shortcut(self):
-        assert_equal(type(self.d), Document)
-        assert_equal(type(self.d), type(self.c.document))
+        assert_equal(type(self.d), Documents)
+        assert_equal(type(self.c.docs), type(self.c.documents))
 
     def test_document_create(self):
         body = dict(
@@ -74,7 +74,7 @@ class TestDocument(TestDocumentBase):
         url = lambda p: "{0}{1}".format(
             self.conn.url,
             self.conn.qs(
-                self.d.DOCUMENT_PATH,
+                Document.DOCUMENT_PATH,
                 **p
             )
         )
@@ -83,8 +83,8 @@ class TestDocument(TestDocumentBase):
             collection="test"
         )
 
-        doc, response = self.create_document(body)
-        assert_equal(response.url, url(params))
+        doc = self.create_document(body)
+        assert_equal(doc.response.url, url(params))
         assert_equal(doc._body, body)
 
         params.update({
@@ -94,29 +94,38 @@ class TestDocument(TestDocumentBase):
         patcher = self.create_response_mock()
         patcher.start()
 
-        doc, response = self.c.d.create(body, createCollection=True)
-        assert_equal(response.url, url(params))
+        doc = self.c.docs.create(body, createCollection=True)
+        assert_equal(doc.response.url, url(params))
 
         test_args = {"data": json.dumps(body)}
-        assert_equal(response.args, test_args)
+        assert_equal(doc.response.args, test_args)
 
         patcher.stop()
 
     @raises(DocumentAlreadyCreated)
     def test_document_create_of_created(self):
         body = {"value": "test"}
-        doc, response = self.c.d.create(body)
+        doc = self.c.docs.create(body)
+
+        assert_equal(doc, None)
+
+        # here we modelling properly created document
+        doc = Document(collection=self.c)
+
+        doc._body = body
         doc._id = 1
+        doc._rev = 1
+
         doc.create(body)
 
     def test_document_deletion(self):
         body = {"value": "test"}
         url = "{0}{1}".format(
             self.conn.url,
-            self.d.DELETE_DOCUMENT_PATH.format("1"),
+            Document.DELETE_DOCUMENT_PATH.format("1"),
         )
 
-        doc, response = self.create_document(body)
+        doc = self.create_document(body)
         assert_equal(doc._body, body)
 
         patcher = self.delete_response_mock()
@@ -126,9 +135,9 @@ class TestDocument(TestDocumentBase):
         doc._rev = 1
         doc._body = {}
 
-        response = doc.delete()
+        doc.delete()
 
-        assert_equal(response.url, url)
+        assert_equal(doc.response.url, url)
 
         assert_equal(doc.id, None)
         assert_equal(doc.rev, None)
@@ -147,7 +156,7 @@ class TestDocument(TestDocumentBase):
             }
         }
 
-        doc, response = self.create_document(body)
+        doc = self.create_document(body)
 
         assert_equal(
             doc.get("array", default=None),
@@ -167,7 +176,7 @@ class TestDocument(TestDocumentBase):
     def test_get_document_arr(self):
         body = [1, 2, 3]
 
-        doc, response = self.create_document(body)
+        doc = self.create_document(body)
 
         assert_equal(doc.doc, body)
         assert_equal(doc.get(2), body[2])
@@ -177,7 +186,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc[1], body[1])
 
     def test_document_update_simple(self):
-        doc, response = self.create_document({"value": 1})
+        doc = self.create_document({"value": 1})
 
         assert_equal(doc["value"], 1)
         doc["value"] = 2
@@ -188,7 +197,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc["name"], "testing")
         assert_equal(doc["value"], 3)
 
-        doc, response = self.create_document([1, 2, 3])
+        doc = self.create_document([1, 2, 3])
         assert_equal(len(doc.doc), 3)
         assert_equal(doc.doc[1], 2)
 
@@ -198,7 +207,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc.doc[3], 4)
 
     def test_document_update_complex(self):
-        doc, response = self.create_document({
+        doc = self.create_document({
             "value": {
                 "level1": {
                     "level2": [1, 2, 3]
@@ -215,12 +224,12 @@ class TestDocument(TestDocumentBase):
 
     @raises(DocumentIncompatibleDataType)
     def test_wrong_type_on_update(self):
-        doc, response = self.create_document({})
+        doc = self.create_document({})
         doc.update(object())
 
     @raises(DocumentIncompatibleDataType)
     def test_deleted_doc_update(self):
-        doc, response = self.create_document({})
+        doc = self.create_document({})
 
         patcher = self.delete_response_mock()
 
@@ -231,7 +240,7 @@ class TestDocument(TestDocumentBase):
         doc.update({})
 
     def test_save(self):
-        doc, response = self.create_document({})
+        doc = self.create_document({})
 
         patcher = self.response_mock(
             status_code=201,
@@ -249,7 +258,7 @@ class TestDocument(TestDocumentBase):
         test_data = {
             "name": "sample"
         }
-        response = doc.update(test_data)
+        doc.update(test_data)
 
         url = "{0}{1}".format(
             doc.connection.url,
@@ -257,14 +266,14 @@ class TestDocument(TestDocumentBase):
         )
 
         assert_equal(doc.rev, 30967599)
-        assert_equal(response.url, url)
+        assert_equal(doc.response.url, url)
         assert_equal(
-            response.args,
+            doc.response.args,
             dict(data=json.dumps(test_data))
         )
 
         # call manuall save() method
-        doc, response = self.create_document({})
+        doc = self.create_document({})
 
         doc.update(test_data, save=False)
         doc.save()

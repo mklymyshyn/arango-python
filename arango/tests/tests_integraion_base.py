@@ -1,7 +1,7 @@
 import unittest
 import logging
 
-from avocado.core import Connection
+from arango.core import Connection
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ __all__ = ("TestsIntegration",)
 
 class TestsIntegration(unittest.TestCase):
     """
-    This suite shoudl work with real AvocadoDB instance
+    This suite shoudl work with real ArangoDB instance
     so make sure that db is running and available
     on http://localhost:8529
     """
