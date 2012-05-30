@@ -14,7 +14,6 @@ endif
 env:
 	python bootstrap.py \
 		--no-site \
-		--disable-bootstrap-update \
 		--upgrade \
 		--python=$(PYTHON_BIN) \
 		--virtualenv=$(ENV_ID) || \
