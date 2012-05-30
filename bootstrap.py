@@ -139,54 +139,6 @@ def bootstrap(pre_req_txt, ve_target, no_site=True,
     do(pass_control_to_doit, ve_target)
 
 
-def update(**kwargs):
-    """
-    Self-update bootstrapping script.
-    """
-    # Idea taken from
-    # http://tarekziade.wordpress.com/2011/02/10/a-simple-self-upgrade-build-pattern/
-    if kwargs.pop('enable_bootstrap_update', True):
-        bootstrap(**kwargs)
-    headers = {}
-    etag = current_etag = None
-    # Getting the file age
-    if os.path.exists(BOOTSTRAP_ETAG):
-        with open(BOOTSTRAP_ETAG) as fh:
-            current_etag = fh.read().strip()
-            headers['If-None-Match'] = current_etag
-
-    request = Request(BOOTSTRAP_URL, headers=headers)
-    # Checking the last version on server
-    try:
-        sys.stderr.write("Fetching bootstrap's updates from %s..." %
-                         BOOTSTRAP_URL)
-        url = urlopen(request, timeout=5)
-        etag = url.headers.get('ETag')
-    except HTTPError as e:
-        if e.getcode() not in (304, 412):
-            raise
-        # We're up to date -- 412 precondition failed
-        etag = current_etag
-        sys.stderr.write("Done. Up to date.\n")
-    except URLError:
-        # Timeout error
-        etag = None
-        sys.stderr.write("Fail. Connection error.\n")
-
-    if etag is not None and current_etag != etag:
-        sys.stderr.write("Done. New version available.\n")
-        # We should update our version
-        content = url.read()
-        with open(BOOTSTRAP_PY, 'w') as fh:
-            fh.write(content)
-        with open(BOOTSTRAP_ETAG, 'w') as fh:
-            fh.write(etag)
-        sys.stderr.write("Bootstrap is updated to %s version.\n" % etag)
-
-    mod = __import__(BOOTSTRAP_MOD)
-    mod.bootstrap(**kwargs)
-
-
 def main(args):
     parser = optparse.OptionParser()
     parser.add_option("-p", "--pre-requirements", dest="pre_requirements",
@@ -204,13 +156,9 @@ def main(args):
     parser.add_option("-u", "--upgrade", dest="upgrade",
                       default=False, action="store_true",
                       help="Upgrade packages")
-    parser.add_option("-b", "--enable-bootstrap-update",
-                      dest="enable_bootstrap_update", default=False,
-                      action="store_true",
-                      help="Enable self-update of bootstrap script.")
+
     options, args = parser.parse_args(args)
-    update(
-        enable_bootstrap_update=options.enable_bootstrap_update,
+    bootstrap(
         pre_req_txt=options.pre_requirements,
         ve_target=options.virtualenv,
         no_site=options.no_site,
