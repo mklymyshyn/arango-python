@@ -62,7 +62,7 @@ class TestCollection(TestsBase):
         assert_equal(self.c.cid, "test")
 
     def test_create(self):
-        response = self.c.create()
+        self.c.create()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.CREATE_COLLECTION_PATH
@@ -71,8 +71,8 @@ class TestCollection(TestsBase):
         test_data = {"name": "test", "waitForSync": False}
         test_args = {"data": json.dumps(test_data)}
 
-        assert_equal(response.url, url)
-        assert_equal(response.args, test_args)
+        assert_equal(self.c.response.url, url)
+        assert_equal(self.c.response.args, test_args)
 
     def test_load(self):
         response = self.c.load()
@@ -93,13 +93,13 @@ class TestCollection(TestsBase):
         assert_equal(response.url, url)
 
     def test_delete(self):
-        response = self.c.delete()
+        self.c.delete()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.DELETE_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(response.url, url)
+        assert_equal(self.c.response.url, url)
 
     def test_truncate(self):
         response = self.c.truncate()
@@ -155,11 +155,11 @@ class TestCollection(TestsBase):
 
         mock(url, test_args).is_error = False
 
-        response = self.c.rename(
-            name="test1"
+        assert_true(
+            self.c.rename(name="test1")
         )
 
-        assert_equal(response.url, mock().url)
+        assert_equal(self.c.response.url, mock().url)
 
         assert_equal(self.c.name, "test1")
         assert_equal(self.c.cid, "test1")

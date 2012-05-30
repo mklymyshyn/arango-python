@@ -98,6 +98,7 @@ class Collection(object):
         self._documents = None
         self._edges = None
         self._index = None
+        self._response = None
 
     def __repr__(self):
         return "<Collection '{0}' for {1}>".format(self.name, self.connection)
@@ -128,6 +129,10 @@ class Collection(object):
         return self._edges
 
     @property
+    def response(self):
+        return self._response
+
+    @property
     def docs(self):
         return self.documents
 
@@ -140,13 +145,20 @@ class Collection(object):
         )
 
     def create(self, waitForSync=False):
-        return self.connection.post(
+        response = self.connection.post(
             self.CREATE_COLLECTION_PATH,
             data=dict(
                 waitForSync=waitForSync,
                 name=self.name
             )
         )
+
+        self._response = response
+
+        if response.status == 200:
+            return self
+
+        return None
 
     def count(self):
         response = self.info(resource="count")
@@ -166,9 +178,16 @@ class Collection(object):
         )
 
     def delete(self):
-        return self.connection.delete(
+        response = self.connection.delete(
             self.DELETE_COLLECTION_PATH.format(self.name)
         )
+
+        self._response = response
+
+        if response.status == 200:
+            return True
+
+        return False
 
     def rename(self, name=None):
         if name is None or name == "":
@@ -181,12 +200,15 @@ class Collection(object):
             data=dict(name=name)
         )
 
+        self._response = response
+
         if not response.is_error:
             # pass new name to connection
             # change current id of the collection
             self.connection.collection.rename_collection(self, name)
+            return True
 
-        return response
+        return False
 
     def param(self, **params):
         action = "get" if params == {} else "put"

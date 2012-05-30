@@ -2,3 +2,4 @@
 env/*
 .coverage
 coverage/*
+docs/build/*
