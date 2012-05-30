@@ -62,7 +62,7 @@ class Connection(object):
             """To avoid auto JSON encoding of `data` keywords
             pass `rawData=True` argument
             """
-            url = "%s%s" % (self.url, path)
+            url = "{0}{1}".format(self.url, path)
             logger.debug(
                 "'{method}' request to '{url}'".format(
                     method=method,
@@ -78,13 +78,19 @@ class Connection(object):
             if "data" in kw and kw.get("data") == {}:
                 kw.pop("data")
 
+            expect_raw = kw.pop("_expect_raw", False)
+
             # Encode automatically data for POST/PUT
             if "data" in kw and \
                     isinstance(kw.get("data"), (dict, list)) \
                     and not kw.pop("rawData", False):
                 kw["data"] = json.dumps(kw.get("data"))
 
-            return Response(url, req(url, **kw), args=kw)
+            return Response(
+                url, req(url, **kw),
+                args=kw,
+                expect_raw=expect_raw
+            )
 
         return requests_factory_wrapper
 
@@ -124,17 +130,18 @@ class Connection(object):
 
 
 class Response(dict):
-    def __init__(self, url, response, args=None):
+    def __init__(self, url, response, args=None, expect_raw=False):
         self.url = url
         self.response = response
         self.status = response.status_code
         self.args = args or {}
         self.message = ""
+        self._data = None
 
-        # TODO: load it lazy
         try:
-            self.update(dict((k, v) \
-                for k, v in json.loads(response.text).iteritems()))
+            if expect_raw == False:
+                self.update(dict((k, v) \
+                    for k, v in json.loads(response.text).iteritems()))
 
         except (TypeError, ValueError) as e:
             msg = "Can't parse response from ArangoDB:"\
@@ -147,6 +154,12 @@ class Response(dict):
             logger.error(msg)
             self.status = 500
             self.message = msg
+
+    @property
+    def data(self):
+        if self._data == None:
+            self._data = json.loads(self.response.text)
+        return self._data
 
     @property
     def is_error(self):
@@ -170,6 +183,8 @@ class Resultset(object):
         self.base = base
         self.results = []
         self.position = 0
+
+        self.max_repr_items = 4
 
     def limit(self, limit=0):
         self._limit = limit
@@ -196,3 +211,17 @@ class Resultset(object):
 
     def __iter__(self):
         return self.base.query(self)
+
+    def __repr__(self):
+        suff = ""
+        items = []
+        for i, item in enumerate(self):
+            items.append(str(item))
+
+            if i > self.max_repr_items:
+                suff = "... more"
+                break
+
+        return "<Resultset: {0}{1}>".format(
+            ", ".join(items), suff
+        )

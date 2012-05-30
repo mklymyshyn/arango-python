@@ -141,7 +141,7 @@ class TestDocument(TestDocumentBase):
 
         assert_equal(doc.id, None)
         assert_equal(doc.rev, None)
-        assert_equal(doc.doc, None)
+        assert_equal(doc.body, None)
 
         patcher.stop()
 
@@ -178,7 +178,7 @@ class TestDocument(TestDocumentBase):
 
         doc = self.create_document(body)
 
-        assert_equal(doc.doc, body)
+        assert_equal(doc.body, body)
         assert_equal(doc.get(2), body[2])
 
         # support to getting item by numeric indexes
@@ -192,19 +192,19 @@ class TestDocument(TestDocumentBase):
         doc["value"] = 2
 
         assert_equal(doc["value"], 2)
-        assert_false("name" in doc.doc)
+        assert_false("name" in doc.body)
         doc.update({"name": "testing", "value": 3}, save=False)
         assert_equal(doc["name"], "testing")
         assert_equal(doc["value"], 3)
 
         doc = self.create_document([1, 2, 3])
-        assert_equal(len(doc.doc), 3)
-        assert_equal(doc.doc[1], 2)
+        assert_equal(len(doc.body), 3)
+        assert_equal(doc.body[1], 2)
 
         doc.update([4, 5, 6], save=False)
-        assert_equal(len(doc.doc), 6)
-        assert_equal(doc.doc[1], 2)
-        assert_equal(doc.doc[3], 4)
+        assert_equal(len(doc.body), 6)
+        assert_equal(doc.body[1], 2)
+        assert_equal(doc.body[3], 4)
 
     def test_document_update_complex(self):
         doc = self.create_document({
@@ -215,10 +215,10 @@ class TestDocument(TestDocumentBase):
             }
         })
 
-        doc.doc.get("value").get("level1")["level2"] = [3, 4, 5]
+        doc.body.get("value").get("level1")["level2"] = [3, 4, 5]
 
         assert_equal(
-            doc.doc.get("value").get("level1").get("level2"),
+            doc.body.get("value").get("level1").get("level2"),
             [3, 4, 5]
         )
 

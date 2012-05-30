@@ -22,6 +22,33 @@ Installation
 Library isn't public yet so just add it to your ``PYTHONPATH``
 
 
+Usage
+-----
+
+It's quite simple to start work with **ArangoDB**::
+
+    from arango import create
+
+    # create connection to database
+    voca = create()
+
+    # create collection with name `test_collection`
+    voca.test_collection.create()
+
+    # create document
+    voca.test_collection.documents.create({
+        "sample_key": "sample_value"
+    })
+
+    # get first document
+    voca.test_collection.documents().first()
+
+    # get document body
+    voca.test_collection.documents().first().body
+
+    # get value of key `sample_key`
+    voca.test_collection.documents().first().get("sample_key")
+
 
 User documentation
 -------------------

@@ -117,10 +117,23 @@ class Document(object):
         # TODO: maybe need to deal with `etag`
 
         if self._resource_url != None:
-            response = self.connection.get(self._resource_url)
+            # FIXME: here I have to parse reference from
+            # URL which isn't cool
+
+            # NB: This appropriate only for key/value or
+            # lists, if document body is object then
+            # everything is ok
+            chunks = self._resource_url.split("/")
+            self._id = "{0}/{1}".format(chunks[-2], chunks[-1])
+            self._rev = chunks[-1]
+
+            response = self.connection.get(
+                self._resource_url,
+                _expect_raw=True)
         else:
             response = self.connection.get(
-                self.READ_DOCUMENT_PATH.format(self._id)
+                self.READ_DOCUMENT_PATH.format(self._id),
+                _expect_raw=True
             )
 
         if response.status != 200:
@@ -129,9 +142,10 @@ class Document(object):
                 "not exist in database".format(self._id)
             )
 
-        self._body = response
-        self._id = response.get("_id")
-        self._rev = response.get("_rev")
+        self._body = response.data
+
+        self._id = response.get("_id", self._id)
+        self._rev = response.get("_rev", self._rev)
 
         self._response = response
 
@@ -157,13 +171,14 @@ class Document(object):
             raise AttributeError
 
     def __repr__(self):
-        return "<ArangoDB Document: Reference %r, Rev: %r" % (
+        self._handle_lazy()
+        return "<ArangoDB Document: Reference {0}, Rev: {1}".format(
             self._id,
             self._rev
         )
 
     @property
-    def doc(self):
+    def body(self):
         """Return whole document"""
         return self.get()
 
@@ -242,7 +257,7 @@ class Document(object):
     def save(self):
         response = self.connection.put(
             self.UPDATE_DOCUMENT_PATH.format(self.id),
-            data=self.doc
+            data=self.body
         )
 
         self._response = response
