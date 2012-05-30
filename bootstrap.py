@@ -19,12 +19,15 @@ BOOTSTRAP_PY = BOOTSTRAP_MOD + '.py'
 BOOTSTRAP_URL = 'https://raw.github.com/jellycrystal/bootstrap/master/bootstrap.py'
 DEFAULT_PRE_REQS = ['virtualenv']
 
+
 def _warn(msg):
     sys.stderr.write("Warn: %s\n" % (msg,))
+
 
 def _err(msg):
     sys.stderr.write("Error: %s\n" % (msg,))
     sys.exit(1)
+
 
 def get_pre_reqs(pre_req_txt):
     """Getting list of pre-requirement executables"""
@@ -41,11 +44,13 @@ def get_pre_reqs(pre_req_txt):
             continue
         yield pre_req
 
+
 def check_pre_req(pre_req):
     """Check for pre-requirement"""
     if subprocess.call(['which', pre_req],
                        stderr=subprocess.PIPE, stdout=subprocess.PIPE) == 1:
         _err("Couldn't find '%s' in PATH" % pre_req)
+
 
 def provide_virtualenv(ve_target, no_site=True, interpreter=None):
     """Provide virtualenv"""
@@ -56,6 +61,7 @@ def provide_virtualenv(ve_target, no_site=True, interpreter=None):
         args.append('--python={0}'.format(interpreter))
     if not os.path.exists(ve_target):
         subprocess.call(['virtualenv'] + args + [ve_target])
+
 
 def install_pip_requirements(ve_target, upgrade=False):
     """Install required Python packages into virtualenv"""
@@ -96,6 +102,7 @@ def install_pip_requirements(ve_target, upgrade=False):
                 _err("Something went wrong during installation requirements: " + \
                      " ".join(call_args))
 
+
 def pass_control_to_doit(ve_target):
     """Passing further control to doit"""
     try:
@@ -106,6 +113,7 @@ def pass_control_to_doit(ve_target):
     if hasattr(dodo, 'task_bootstrap'):
         doit = os.path.join(ve_target, 'bin', 'doit')
         subprocess.call([doit, 'bootstrap'])
+
 
 def do(func, *args, **kwargs):
     """Announce func.__doc__ and run func with provided arguments"""
@@ -130,13 +138,14 @@ def bootstrap(pre_req_txt, ve_target, no_site=True,
     do(install_pip_requirements, ve_target, upgrade=upgrade)
     do(pass_control_to_doit, ve_target)
 
+
 def update(**kwargs):
     """
     Self-update bootstrapping script.
     """
     # Idea taken from
     # http://tarekziade.wordpress.com/2011/02/10/a-simple-self-upgrade-build-pattern/
-    if kwargs.pop('disable_bootstrap_update', False):
+    if kwargs.pop('enable_bootstrap_update', True):
         bootstrap(**kwargs)
     headers = {}
     etag = current_etag = None
@@ -195,13 +204,13 @@ def main(args):
     parser.add_option("-u", "--upgrade", dest="upgrade",
                       default=False, action="store_true",
                       help="Upgrade packages")
-    parser.add_option("-b", "--disable-bootstrap-update",
-                      dest="disable_bootstrap_update", default=False,
+    parser.add_option("-b", "--enable-bootstrap-update",
+                      dest="enable_bootstrap_update", default=False,
                       action="store_true",
-                      help="Disable self-update of bootstrap script.")
+                      help="Enable self-update of bootstrap script.")
     options, args = parser.parse_args(args)
     update(
-        disable_bootstrap_update=options.disable_bootstrap_update,
+        enable_bootstrap_update=options.enable_bootstrap_update,
         pre_req_txt=options.pre_requirements,
         ve_target=options.virtualenv,
         no_site=options.no_site,

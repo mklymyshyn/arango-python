@@ -23,12 +23,16 @@ class Edges(object):
 
         return Resultset(self)
 
+    def __repr__(self):
+        return "<ArangoDB Edges Proxy Object>"
+
     def __len__(self):
         return self.count()
 
     def count(self):
+        """Get count of edges"""
         response = self.connection.get(
-            self.DOCUMENTS_PATH.format(self.collection.cid)
+            self.EDGES_PATH.format(self.collection.cid)
         )
         return len(response.get("edges", []))
 
@@ -55,19 +59,16 @@ class Edges(object):
         return edge.create(*args, **kwargs)
 
     def delete(self, ref):
-        """Delete document by reference"""
+        """Delete Edge by reference"""
 
-        # TODO: extend Edge to work in same manner as Document
-        #doc = Edge(collection=self.collection, id=ref)
-        #return doc.delete()
-        pass
+        edge = Edge(collection=self.collection, id=ref)
+        return edge.delete()
 
     def update(self, ref, *args, **kwargs):
-        """Update document by reference"""
-        # TODO: update Edge to work in same manner as Document
-        #doc = Document(collection=self.collection, id=ref)
-        #return doc.update(*args, **kwargs)
-        pass
+        """Update Edge by reference"""
+
+        edge = Edge(collection=self.collection, id=ref)
+        return edge.update(*args, **kwargs)
 
 
 class Edge(object):

@@ -27,6 +27,9 @@ class Documents(object):
 
         return Resultset(self)
 
+    def __repr__(self):
+        return "<ArangoDB Documents Proxy Object>"
+
     def __len__(self):
         return self.count()
 
