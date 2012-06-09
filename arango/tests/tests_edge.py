@@ -1,11 +1,14 @@
 
-from .tests_document import TestDocumentBase
+from mock import Mock, patch
 
-from nose.tools import assert_equal, assert_true, raises
+from nose.tools import assert_equal, assert_true, raises, \
+                       assert_not_equal
+
 from arango.edge import Edge, Edges
 from arango.utils import json
-
 from arango.exceptions import EdgeAlreadyCreated
+
+from .tests_document import TestDocumentBase
 
 
 __all__ = ("TestEdge",)
@@ -161,3 +164,26 @@ class TestEdge(TestDocumentBase):
         assert_equal(edge.to_document, None)
 
         patcher.stop()
+
+    def test_edge_comparsion(self):
+        body = {"value": 1}
+        doc1 = self.create_document(123, body)
+        doc2 = self.create_document(234, body)
+
+        edge1, response = self.create_edge(doc1, doc2, body)
+        edge2, response = self.create_edge(doc1, doc2, body)
+
+        mock_from = Mock()
+        mock_to = Mock()
+
+        with patch("arango.document.Document.fetch"):
+            edge1._from = mock_from
+            edge1._to = mock_to
+            edge2._from = mock_from
+            edge2._to = mock_to
+
+            assert_equal(edge1, edge2)
+
+            edge2._to_document = None
+            edge2._to = Mock()
+            assert_not_equal(edge1, edge2)

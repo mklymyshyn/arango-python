@@ -1,6 +1,7 @@
 import copy
 import logging
 
+from .comparsion import ComparsionMixin
 from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
                         EdgeIncompatibleDataType, \
@@ -98,11 +99,13 @@ class Edges(object):
         return edge.update(*args, **kwargs)
 
 
-class Edge(object):
+class Edge(ComparsionMixin):
 
     EDGE_PATH = "/_api/edge"
     DELETE_EDGE_PATH = "/_api/edge/{0}"
     UPDATE_EDGE_PATH = "/_api/edge/{0}"
+
+    IGNORE_KEYS = set(["_rev", "_id", "_from", "_to"])
 
     def __init__(self, collection=None,
                  _id=None, _rev=None,
@@ -152,6 +155,24 @@ class Edge(object):
             )
 
         return self._to_document
+
+    def __cmp__(self, other):
+        """
+        Compare two Edges in same way as Document and
+        additionally compare FROM and TO documents
+        """
+
+        if other == None:
+            return -1
+
+        if super(Edge, self).__cmp__(other) != 0:
+            return -1
+
+        if self.from_document == other.from_document and \
+                self.to_document == other.to_document:
+            return 0
+
+        return -1
 
     def __repr__(self):
         return "<ArangoDB Edge: Id {0}/{1}, From {2} to {3}>".format(

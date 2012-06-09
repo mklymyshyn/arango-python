@@ -1,5 +1,6 @@
 import logging
 
+from .comparsion import ComparsionMixin
 from .exceptions import DocumentAlreadyCreated, \
                         DocumentIncompatibleDataType, \
                         DocumentNotFound
@@ -79,7 +80,7 @@ class Documents(object):
         return doc.update(*args, **kwargs)
 
 
-class Document(object):
+class Document(ComparsionMixin):
     """Particular instance of Document"""
 
     DOCUMENT_PATH = "/_api/document"
@@ -88,6 +89,7 @@ class Document(object):
     READ_DOCUMENT_PATH = "/_api/document/{0}"
 
     LAZY_LOAD_HANDLERS = ['id', 'rev', 'body', 'get', 'update', 'delete']
+    IGNORE_KEYS = set(["_rev", "_id"])
 
     def __init__(self, collection=None, id=None, resource_url=None):
         """You have to specify collection and you *may* specify either:
@@ -175,33 +177,6 @@ class Document(object):
             return object.__getattribute__(self, name)
         except KeyError:
             raise AttributeError
-
-    def __cmp__(self, other):
-        """
-        Compare two Documents
-        """
-        ignore_keys = set(["_rev", "_id"])
-
-        if other == None:
-            return -1
-
-        if self.body != None and other.body != None and \
-                set(self.body).symmetric_difference(other.body) not in \
-                    [ignore_keys, set([])]:
-            return -1
-
-        # compare bodies but ignore sys keys
-        for key in other.body.keys():
-            if key in ignore_keys:
-                continue
-
-            if self.body.get("key", None) != other.body.get("key", None):
-                return -1
-
-        if self.id == other.id and self.rev == other.rev:
-            return 0
-
-        return -1
 
     def __repr__(self):
         self._handle_lazy()
