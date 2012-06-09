@@ -1,7 +1,7 @@
 import logging
 import os
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -13,6 +13,17 @@ __all__ = ("TestsEdge",)
 
 class TestsEdge(TestsIntegration):
 
+    def setUp(self):
+        super(TestsEdge, self).setUp()
+
+        self.c = self.conn.collection
+        self.c.test.create()
+
+        body = {"key": 1}
+
+        self.from_doc = self.c.test.documents.create(body)
+        self.to_doc = self.c.test.documents.create(body)
+
     def tearDown(self):
         super(TestsEdge, self).tearDown()
 
@@ -20,28 +31,46 @@ class TestsEdge(TestsIntegration):
         c.collection.test.delete()
 
     def test_edge_creation(self):
-        c = self.conn
+        # creating edge with custom data
+        self.c.test.edges.create(
+            self.from_doc,
+            self.to_doc,
+            {"custom": 1}
+        )
 
-        logger.info("Creationg new collection 'test'")
+        # getting edge by document
+        assert_not_equal(
+            self.c.test.edges(self.from_doc).count,
+            0
+        )
 
-        body = {
-            "value": 1,
-            "testing": True,
-            "options": [
-                1,
-                2,
-                3
-            ]
-        }
+        result = self.c.test.edges(
+            self.from_doc, direction="out").first()
 
-        c.collection.test.create()
-        count_before = c.collection.test.count()
+        assert_equal(
+            result.to_document,
+            self.to_doc
+        )
 
-        c.collection.test.documents.create(body)
-        assert_equal(c.collection.test.count(), count_before + 1)
+        assert_equal(
+            self.c.test.edges(self.from_doc, direction="in").first(),
+            None
+        )
 
-        c.collection.test.documents.create(body)
-        assert_equal(c.collection.test.count(), count_before + 2)
+    def test_edge_deletion(self):
+        # creating edge with custom data
+        self.c.test.edges.create(
+            self.from_doc,
+            self.to_doc,
+            {"custom": 1}
+        )
+
+        self.c.test.edges(self.from_doc).first().delete()
+
+        assert_equal(
+            self.c.test.edges(self.from_doc).first(),
+            None
+        )
 
 
 # execute integrational tests only if `INTEGRATIONAL`

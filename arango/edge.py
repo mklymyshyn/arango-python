@@ -1,8 +1,10 @@
+import copy
 import logging
 
 from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
-                        EdgeIncompatibleDataType
+                        EdgeIncompatibleDataType, \
+                        DocumentIncompatibleDataType
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,7 @@ __all__ = ("Edge", "Edges")
 
 class Edges(object):
 
-    EDGES_PATH = "/_api/edge"
+    EDGES_PATH = "/_api/edges/{0}"
 
     def __init__(self, collection=None):
         self.connection = collection.connection
@@ -21,7 +23,7 @@ class Edges(object):
     def __call__(self, *args, **kwargs):
         from .core import Resultset
 
-        return Resultset(self)
+        return Resultset(self, *args, **kwargs)
 
     def __repr__(self):
         return "<ArangoDB Edges Proxy Object>"
@@ -36,19 +38,44 @@ class Edges(object):
         )
         return len(response.get("edges", []))
 
-    def query(self, rs):
-        """This method will be called within Resultset so
-        it should get list of document"""
+    def prepare_resultset(self, rs, args=None, kwargs=None):
+        """This method should be called to prepare results"""
+
+        kwargs = kwargs if kwargs != None else {}
+
+        if not args or not isinstance(args[0], Document):
+            raise DocumentIncompatibleDataType(
+                "First argument should be VERTEX (eq document)"
+            )
+
+        # specify vertex
+        kwargs.update({
+            "vertex": args[0].id
+        })
+
         response = self.connection.get(
-            self.EDGES_PATH.format(self.collection.cid)
+            self.connection.qs(
+                self.EDGES_PATH.format(self.collection.cid),
+                **kwargs
+            )
         )
 
         edges = response.get("edges", [])[rs._offset:]
 
+        # set up response data
+        rs.response = response
+        rs.count = len(edges)
+
         if rs._limit != None:
             edges = edges[:rs._limit]
 
-        for edge in edges:
+        rs.data = edges
+
+    def iterate(self, rs):
+        """
+        Execute to iterate results
+        """
+        for edge in rs.data:
             yield Edge(
                 collection=self.collection,
                 **edge
@@ -105,26 +132,34 @@ class Edge(object):
         if not self._from:
             return None
 
-        if not self._from_instance:
-            self._from_instance = Document(
+        if not self._from_document:
+            self._from_document = Document(
                 collection=self.collection,
                 id=self._from
             )
 
-        return self._from_instance
+        return self._from_document
 
     @property
     def to_document(self):
         if not self._to:
             return None
 
-        if not self._to_instance:
-            self._to_instance = Document(
+        if not self._to_document:
+            self._to_document = Document(
                 collection=self.collection,
                 id=self._to
             )
 
-        return self._to_instance
+        return self._to_document
+
+    def __repr__(self):
+        return "<ArangoDB Edge: Id {0}/{1}, From {2} to {3}>".format(
+            self._id,
+            self._rev,
+            self._from,
+            self._to
+        )
 
     def __getitem__(self, name):
         """Get element by dict-like key"""
@@ -136,7 +171,7 @@ class Edge(object):
         self._body[name] = value
 
     @property
-    def edge(self):
+    def body(self):
         """Return whole document"""
         return self.get()
 
@@ -166,7 +201,7 @@ class Edge(object):
         self._to = response.get("_to", None)
         self._body = response
 
-    def create(self, from_doc, to_doc, body):
+    def create(self, from_doc, to_doc, body, **kwargs):
         if self.id != None:
             raise EdgeAlreadyCreated(
                 "This edge already created with id {0}".format(self.id)
@@ -187,6 +222,14 @@ class Edge(object):
             "to": to_doc_id
         }
 
+        params.update(kwargs)
+
+        data = copy.copy(self.body) if self.body else {}
+        data.update({
+            "_from": from_doc_id,
+            "_to": to_doc_id
+        })
+
         response = self.connection.post(
             self.connection.qs(
                 self.EDGE_PATH,
@@ -198,7 +241,7 @@ class Edge(object):
         self._response = response
 
         # define document ID
-        if response.get("code", 500) in [201, 202]:
+        if response.status in [201, 202]:
             self.parse_edge_response(response)
 
         return self
@@ -253,9 +296,18 @@ class Edge(object):
     def save(self, **kwargs):
         # TODO: research it's possible to change
         # from/to edge properties within this method
+
+        data = copy.copy(self.edge)
+
+        data.update({
+            "_from": self._from,
+            "_to": self._to
+        })
+
         response = self.connection.put(
             self.UPDATE_EDGE_PATH.format(self.id),
-            data=self.edge
+            data=data,
+            **kwargs
         )
 
         self._response = response

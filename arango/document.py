@@ -39,19 +39,25 @@ class Documents(object):
         )
         return len(response.get("documents", []))
 
-    def query(self, rs):
-        """This method will be called within Resultset so
-        it should get list of document"""
+    def prepare_resultset(self, rs, args=None, kwargs=None):
         response = self.connection.get(
             self.DOCUMENTS_PATH.format(self.collection.cid)
         )
 
         doc_urls = response.get("documents", [])[rs._offset:]
 
+        rs.response = response
+        rs.count = len(doc_urls)
         if rs._limit != None:
             doc_urls = doc_urls[:rs._limit]
 
-        for url in doc_urls:
+        rs.data = doc_urls
+
+    def query(self, rs):
+        """This method will be called within Resultset so
+        it should get list of document"""
+
+        for url in rs.data:
             yield Document(
                 collection=self.collection,
                 resource_url=url
@@ -79,9 +85,9 @@ class Document(object):
     DOCUMENT_PATH = "/_api/document"
     DELETE_DOCUMENT_PATH = "/_api/document/{0}"
     UPDATE_DOCUMENT_PATH = "/_api/document/{0}"
-    READ_DOCUMENT_PATH = "/_api/document/{0]"
+    READ_DOCUMENT_PATH = "/_api/document/{0}"
 
-    LAZY_LOAD_HANDLERS = ['id', 'rev', 'doc', 'get', 'update', 'delete']
+    LAZY_LOAD_HANDLERS = ['id', 'rev', 'body', 'get', 'update', 'delete']
 
     def __init__(self, collection=None, id=None, resource_url=None):
         """You have to specify collection and you *may* specify either:
@@ -144,8 +150,8 @@ class Document(object):
 
         self._body = response.data
 
-        self._id = response.get("_id", self._id)
-        self._rev = response.get("_rev", self._rev)
+        self._id = response.data.get("_id", self._id)
+        self._rev = response.data.get("_rev", self._rev)
 
         self._response = response
 
@@ -170,9 +176,35 @@ class Document(object):
         except KeyError:
             raise AttributeError
 
+    def __cmp__(self, other):
+        """
+        Compare two Documents
+        """
+        ignore_keys = set(["_rev", "_id"])
+
+        if other == None:
+            return -1
+
+        if self.body != None and other.body != None and \
+                set(self.body).symmetric_difference(other.body) != ignore_keys:
+            return -1
+
+        # compare bodies but ignore sys keys
+        for key in other.body.keys():
+            if key in ignore_keys:
+                continue
+
+            if self.body.get("key", None) != other.body.get("key", None):
+                return -1
+
+        if self.id == other.id and self.rev == other.rev:
+            return 0
+
+        return -1
+
     def __repr__(self):
         self._handle_lazy()
-        return "<ArangoDB Document: Reference {0}, Rev: {1}".format(
+        return "<ArangoDB Document: Reference {0}, Rev: {1}>".format(
             self._id,
             self._rev
         )
@@ -202,7 +234,7 @@ class Document(object):
 
         return self._body.get(name, default)
 
-    def create(self, body, createCollection=False):
+    def create(self, body, createCollection=False, **kwargs):
         if self.id is not None:
             raise DocumentAlreadyCreated(
                 "This document already created with id {0}".format(self.id)
@@ -212,6 +244,8 @@ class Document(object):
 
         if createCollection == True:
             params.update(dict(createCollection=True))
+
+        params.update(kwargs)
 
         response = self.connection.post(
             self.connection.qs(

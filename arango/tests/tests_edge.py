@@ -156,7 +156,7 @@ class TestEdge(TestDocumentBase):
 
         assert_equal(edge.id, None)
         assert_equal(edge.rev, None)
-        assert_equal(edge.edge, None)
+        assert_equal(edge.body, None)
         assert_equal(edge.from_document, None)
         assert_equal(edge.to_document, None)
 

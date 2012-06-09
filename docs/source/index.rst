@@ -16,14 +16,25 @@ Driver for Python is incomplete. It supports at the moment:
  #. Edges
 
 
+Contents
+---------
+.. toctree::
+   :maxdepth: 2
+
+   edges
+
+
+Getting started
+---------------
+
 Installation
--------------
+~~~~~~~~~~~~~
 
 Library isn't public yet so just add it to your ``PYTHONPATH``
 
 
-Usage
------
+Usage example
+~~~~~~~~~~~~~
 
 It's quite simple to start work with **ArangoDB**::
 
@@ -48,12 +59,6 @@ It's quite simple to start work with **ArangoDB**::
 
     # get value of key `sample_key`
     voca.test_collection.documents().first().get("sample_key")
-
-
-User documentation
--------------------
-.. toctree::
-   :maxdepth: 2
 
 
 

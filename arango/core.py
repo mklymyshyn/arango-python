@@ -185,6 +185,39 @@ class Resultset(object):
         self.position = 0
 
         self.max_repr_items = 4
+        self._response = None
+        self._count = 0
+        self._data = None
+
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self, value):
+        self._response = value
+
+    def _prepare(self):
+        """Prepare data"""
+        if not self.data:
+            self.base.prepare_resultset(
+                self, args=self._args, kwargs=self._kwargs)
+
+    @property
+    def count(self):
+        self._prepare()
+        return self._count
+
+    @count.setter
+    def count(self, value):
+        self._count = value
+
+    @property
+    def data(self):
+        return self._data
+    @data.setter
+    def data(self, value):
+        self._data = value
 
     def limit(self, limit=0):
         self._limit = limit
@@ -209,8 +242,12 @@ class Resultset(object):
         except IndexError:
             return None
 
+    def __len__(self):
+        return self.count
+
     def __iter__(self):
-        return self.base.query(self)
+        self._prepare()
+        return self.base.iterate(self)
 
     def __repr__(self):
         suff = ""
