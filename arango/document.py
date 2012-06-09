@@ -186,7 +186,8 @@ class Document(object):
             return -1
 
         if self.body != None and other.body != None and \
-                set(self.body).symmetric_difference(other.body) != ignore_keys:
+                set(self.body).symmetric_difference(other.body) not in \
+                    [ignore_keys, set([])]:
             return -1
 
         # compare bodies but ignore sys keys

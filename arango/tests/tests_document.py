@@ -1,7 +1,8 @@
 
 from .tests_base import TestsBase
 
-from nose.tools import assert_equal, raises, assert_false
+from nose.tools import assert_equal, raises, assert_false, \
+                       assert_not_equal
 
 from arango.document import Document, Documents
 from arango.utils import json
@@ -205,6 +206,22 @@ class TestDocument(TestDocumentBase):
         assert_equal(len(doc.body), 6)
         assert_equal(doc.body[1], 2)
         assert_equal(doc.body[3], 4)
+
+    def test_document_comparsion(self):
+        doc1 = self.create_document({"value": 1})
+        doc2 = self.create_document({"value": 1})
+
+        assert_equal(doc1, doc2)
+
+        doc1.update({"_rev": 1, "_id": 2}, save=False)
+        assert_equal(doc1, doc2)
+
+        doc1.update({"name": 1}, save=False)
+        assert_not_equal(doc1, doc2)
+
+        doc1 = self.create_document({"value": 1})
+        doc1._id = 2
+        assert_not_equal(doc1, doc2)
 
     def test_document_update_complex(self):
         doc = self.create_document({
