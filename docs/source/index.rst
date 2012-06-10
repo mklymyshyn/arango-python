@@ -14,6 +14,12 @@ Driver for Python is incomplete. It supports at the moment:
  #. Collections
  #. Documents
  #. Edges
+ #. Indexes
+
+What's not supported in current version:
+
+  #. Ability to making Queries
+  #. Cursors
 
 
 Contents

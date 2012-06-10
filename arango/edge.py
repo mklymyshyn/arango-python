@@ -14,7 +14,10 @@ __all__ = ("Edge", "Edges")
 
 
 class Edges(object):
-
+    """
+    Proxy objects between ``Collection`` and ``Edge``.
+    Edges in general very related to ``Document``.
+    """
     EDGES_PATH = "/_api/edges/{0}"
 
     def __init__(self, collection=None):
@@ -33,7 +36,7 @@ class Edges(object):
         return self.count()
 
     def count(self):
-        """Get count of edges"""
+        """Get count of edges within current collection"""
         response = self.connection.get(
             self.EDGES_PATH.format(self.collection.cid)
         )
@@ -83,23 +86,33 @@ class Edges(object):
             )
 
     def create(self, *args, **kwargs):
+        """
+        Create new Edge
+        """
         edge = Edge(collection=self.collection)
         return edge.create(*args, **kwargs)
 
     def delete(self, ref):
-        """Delete Edge by reference"""
+        """
+        Delete Edge by reference
+        """
 
         edge = Edge(collection=self.collection, id=ref)
         return edge.delete()
 
     def update(self, ref, *args, **kwargs):
-        """Update Edge by reference"""
+        """
+        Update Edge by reference
+        """
 
         edge = Edge(collection=self.collection, id=ref)
         return edge.update(*args, **kwargs)
 
 
 class Edge(ComparsionMixin):
+    """
+    Edge instance object
+    """
 
     EDGE_PATH = "/_api/edge"
     DELETE_EDGE_PATH = "/_api/edge/{0}"
@@ -132,6 +145,9 @@ class Edge(ComparsionMixin):
 
     @property
     def from_document(self):
+        """
+        From vertex, return instance of ``Document`` or ``None``
+        """
         if not self._from:
             return None
 
@@ -145,6 +161,9 @@ class Edge(ComparsionMixin):
 
     @property
     def to_document(self):
+        """
+        To vertex, return instance of ``Document`` or ``None``
+        """
         if not self._to:
             return None
 
@@ -193,12 +212,12 @@ class Edge(ComparsionMixin):
 
     @property
     def body(self):
-        """Return whole document"""
+        """This property return Edge content"""
         return self.get()
 
     @property
     def response(self):
-        """Method to get latest response"""
+        """Property to get latest response"""
         return self._response
 
     def get(self, name=None, default=None):
@@ -223,6 +242,15 @@ class Edge(ComparsionMixin):
         self._body = response
 
     def create(self, from_doc, to_doc, body, **kwargs):
+        """
+        Method to create new edge.
+        ``from_doc`` and ``to_doc`` may be both
+        **document-handle** or instances of ``Document`` object.
+
+        Possible arguments: :term:`waitForSync`
+
+        Read more about additional arguments  :term:`Edges REST Api`
+        """
         if self.id != None:
             raise EdgeAlreadyCreated(
                 "This edge already created with id {0}".format(self.id)
@@ -268,6 +296,10 @@ class Edge(ComparsionMixin):
         return self
 
     def delete(self):
+        """
+        Method to delete current edge. If edge deleted
+        this method return ``True`` and in other case ``False``
+        """
         response = self.connection.delete(
             self.DELETE_EDGE_PATH.format(self.id)
         )
@@ -282,7 +314,14 @@ class Edge(ComparsionMixin):
         return False
 
     def update(self, body, from_doc=None, to_doc=None, save=True, **kwargs):
+        """
+        Method to update edge. In case **from_doc** or **do_doc**
+        not specified or equal to ``None`` then current
+        ``from_document`` and ``to_document`` will be used.
 
+        In case ``save`` argument set to ``False`` edge will not be
+        updated until ``save()`` method will be called.
+        """
         if not self._id or not self._from or not self._to:
             raise EdgeNotYetCreated(
                 "Sorry, you try to update Edge which is not yet created"
@@ -315,6 +354,14 @@ class Edge(ComparsionMixin):
         return True
 
     def save(self, **kwargs):
+        """
+        Method to save Edge. This is useful when
+        edge udpated several times via ``update``
+
+        Possible arguments: :term:`waitForSync`
+
+        Read more about additional arguments  :term:`Edges REST Api`
+        """
         # TODO: research it's possible to change
         # from/to edge properties within this method
 

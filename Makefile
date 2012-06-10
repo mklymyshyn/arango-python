@@ -18,3 +18,7 @@ fast:
 
 one:
 	INTEGRATION=1 nosetests -v arango.tests.$(DST)
+
+doc:
+	cd docs && make clean && make html && \
+		rsync -avz build/html/* -e ssh apps@klymyshyn.com:/home/apps/arango/*
