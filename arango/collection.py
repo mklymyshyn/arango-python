@@ -110,10 +110,16 @@ class Collection(object):
 
     @property
     def cid(self):
+        """
+        Get collection name
+        """
         return self.name
 
     @property
     def index(self):
+        """
+        Get **Indexes** related to Collection
+        """
         if not self._index:
             self._index = Index(self)
 
@@ -121,6 +127,9 @@ class Collection(object):
 
     @property
     def documents(self):
+        """
+        Get **Documents** related to Collection
+        """
         if not self._documents:
             self._documents = Documents(collection=self)
 
@@ -128,6 +137,9 @@ class Collection(object):
 
     @property
     def edges(self):
+        """
+        Get :ref:`edges` related to Collection
+        """
         if self._edges == None:
             self._edges = Edges(collection=self)
 
@@ -135,13 +147,24 @@ class Collection(object):
 
     @property
     def response(self):
+        """
+        Get latest response
+        """
         return self._response
 
     @property
     def docs(self):
+        """
+        Shortcut for `documents` property
+        """
         return self.documents
 
     def info(self, resource=""):
+        """
+        Get information about collection.
+        Information returns **AS IS** as
+        raw ``Response``
+        """
         if resource not in self.INFO_ALLOWED_RESOURCES:
             resource = ""
 
@@ -150,6 +173,11 @@ class Collection(object):
         )
 
     def create(self, waitForSync=False):
+        """
+        Create new **Collection**. You can specify
+        ``waitForSync`` argument (boolean) to wait until
+        collection will be synced to disk
+        """
         response = self.connection.post(
             self.CREATE_COLLECTION_PATH,
             data=dict(

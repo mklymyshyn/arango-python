@@ -41,12 +41,7 @@ Get list of collections
 
 To get list of **Collections** simply call connection like `c()`
 
-.. autoclass:: arango.collection.Collections
-    :members: __call__
-
-
 For example::
-
 
     from arango import create
 
@@ -56,5 +51,22 @@ For example::
     # here we creating collection explicitly
     c.test.create()
 
-    assert_equal c(), ["test"]
+    assert c(), ["test"]
+
+
+.. autoclass:: arango.collection.Collections
+    :members: __call__
+
+
+
+
+Manipulate collection
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: arango.collection.Collection
+    :members: cid, response, info,
+              create, delete, update, rename,
+              count, __len__, param,
+              index, documents, edges,
+              load, unload, truncate
 
