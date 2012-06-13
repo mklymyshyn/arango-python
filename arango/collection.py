@@ -28,7 +28,8 @@ class Collections(object):
         )
 
         names = [c.get("name") for c in response.get("collections", [])]
-        return names, response
+
+        return names
 
     def __getattr__(self, name):
         """Lazy init of collection"""
@@ -49,6 +50,10 @@ class Collections(object):
         return self.collections.get(name)
 
     def rename_collection(self, collection, new_name):
+        """
+        Private method which should be used by ``Collection``
+        instance itself.
+        """
         if collection is None or \
                 not issubclass(collection.__class__, Collection):
             raise InvalidCollection(
@@ -190,6 +195,19 @@ class Collection(object):
         return False
 
     def rename(self, name=None):
+        """
+        Change name of Collection to ``name``
+
+        .. code::
+
+                from arango import create
+                c = create()
+
+                c.test.create()
+
+                c.test.rename("test2")
+                assert "test2" in c()
+        """
         if name is None or name == "":
             raise InvalidCollectionId(
                 "Please, provide correct collection name"

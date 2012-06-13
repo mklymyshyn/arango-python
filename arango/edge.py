@@ -137,6 +137,7 @@ class Edge(ComparsionMixin):
 
     @property
     def id(self):
+
         return self._id
 
     @property
@@ -221,7 +222,17 @@ class Edge(ComparsionMixin):
         return self._response
 
     def get(self, name=None, default=None):
-        """Getter for body"""
+        """
+        This method very similar to ``dict``'s ``get`` method.
+        The difference is that *default* value should be specified
+        explicitly.
+
+        To get specific value for specific key in body use and default
+        *(fallback)* value ``0``::
+
+            edge.get(name="sample_key", default=0)
+
+        """
 
         if not self._body:
             return default

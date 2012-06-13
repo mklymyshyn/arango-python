@@ -1,14 +1,20 @@
 .. _edges:
 
-Working with Edges
-------------------
+Edges
+-----
+
+Edges is entyties which represend connection between two
+documents. The main idea of **Edges** is that you can buidl your own
+graph (tree) between set of documents and make search within hierarchy of
+documents.
 
 To specify vertex ``from_document`` and ``to_document`` should be
 specified during **Edge** creation::
 
 
-    from arango import collection as c
+    from arango import create
 
+    c = create()
     c.test.create()
 
     # create FROM document
@@ -74,5 +80,5 @@ Edge instances methods consist from basic **CRUD** methods and additional
 methods specific obly for **Edges**:
 
 .. autoclass:: arango.edge.Edge
-    :members: create, update, delete, save, body, response,
-              from_document, to_document
+    :members: id, rev, create, update, delete, save, body, response,
+              from_document, to_document, get

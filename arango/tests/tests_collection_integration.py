@@ -101,7 +101,7 @@ class TestsCollection(TestsIntegration):
         c.collection.sample3.create()
 
         logger.info("Getting list of collections")
-        names, response = c.collection()
+        names = c.collection()
 
         for n in ["sample1", "sample2", "sample3"]:
             assert_true(n in names)
@@ -110,7 +110,7 @@ class TestsCollection(TestsIntegration):
         c.collection.sample1.delete()
         c.collection.sample3.delete()
 
-        names, response = c.collection()
+        names = c.collection()
 
         for n in ["sample1", "sample3"]:
             assert_false(n in names)

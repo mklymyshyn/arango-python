@@ -40,12 +40,7 @@ class TestCollectionProxy(TestsBase):
         )
 
     def test_collections_list(self):
-        collection, response = self.conn.collection()
-
-        assert_equal(
-            type(response),
-            Response
-        )
+        collection = self.conn.collection()
 
         assert_equal(
             collection,

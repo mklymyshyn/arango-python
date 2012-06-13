@@ -27,7 +27,9 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   collections
    edges
+   glossary
 
 
 Getting started
