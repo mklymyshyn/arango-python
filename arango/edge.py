@@ -47,7 +47,7 @@ class Edges(object):
 
         kwargs = kwargs if kwargs != None else {}
 
-        if not args or not isinstance(args[0], Document):
+        if not args or not issubclass(type(args[0]), Document):
             raise DocumentIncompatibleDataType(
                 "First argument should be VERTEX (eq document)"
             )

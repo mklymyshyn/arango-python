@@ -54,7 +54,7 @@ class Documents(object):
 
         rs.data = doc_urls
 
-    def query(self, rs):
+    def iterate(self, rs):
         """This method will be called within Resultset so
         it should get list of document"""
 

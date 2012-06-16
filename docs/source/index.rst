@@ -2,7 +2,8 @@ ArangoDB Driver for Python
 ==========================
 
 .. warning::
-    This document is incomplete and will be improved in future
+    This is **PRE ALPHA** release, so several required features
+    **are not supported**!
 
 
 Features support
@@ -21,6 +22,12 @@ What's not supported in current version:
   #. Ability to making Queries
   #. Cursors
 
+Platforms and Python versions
+-----------------------------
+
+This release support *Python 2.6*, *Python 2.7* and *PyPy 1.8*.
+
+Next in chain are *PyPy 1.9* and *Python 3.3*
 
 Contents
 ---------
@@ -28,8 +35,11 @@ Contents
    :maxdepth: 2
 
    collections
+   documents
    edges
+   exceptions
    glossary
+   guidelines
 
 
 Getting started

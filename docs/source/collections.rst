@@ -69,7 +69,7 @@ documentation which describe :term:`Collections REST Api`
 
 .. autoclass:: arango.collection.Collection
     :members: cid, response, info, properties,
-              create, delete, update, rename,
+              create, delete, rename,
               count, __len__,
               index, documents, edges,
               load, unload, truncate

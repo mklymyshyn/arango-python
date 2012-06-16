@@ -73,6 +73,8 @@ There's possible to specify ``direction`` of edges to:
 More details in :term:`Edges REST Api` documentation of **ArangoDB**
 
 
+.. _edge:
+
 Edge instance methods
 ~~~~~~~~~~~~~~~~~~~~~
 

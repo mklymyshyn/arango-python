@@ -54,7 +54,7 @@ class Collections(object):
         Private method which should be used by ``Collection``
         instance itself.
         """
-        if collection is None or \
+        if collection == None or \
                 not issubclass(collection.__class__, Collection):
             raise InvalidCollection(
                 "Object '{0}' is not subclass of "\
@@ -138,7 +138,18 @@ class Collection(object):
     @property
     def edges(self):
         """
-        Get :ref:`edges` related to Collection
+        Get :ref:`edges` related to Collection.
+
+        If this method used to query edges (or called with no arguments)
+        it may generated exceptions:
+
+            * ``DocumentIncompatibleDataType``
+
+              In case you're not provided ``VERTEX`` of the Edge
+              which should be instance or subclass od :ref:`document`
+
+              More about :term:`DocumentIncompatibleDataType`
+
         """
         if self._edges == None:
             self._edges = Edges(collection=self)
@@ -245,7 +256,33 @@ class Collection(object):
 
     def rename(self, name=None):
         """
-        Change name of Collection to ``name``
+        Change name of Collection to ``name``.
+
+        Return value is ``bool`` if success or
+        error respectively.
+
+        This method may raise exceptions:
+
+            * ``InvalidCollection``
+
+              This one may be generated only in case
+              very low-level instantiation of Collection
+              and if base collection proxy isn't provided
+              More about :term:`InvalidCollection`
+
+            * ``CollectionIdAlreadyExist``
+
+              If Collection with new name already exist
+              this exception will be generated.
+              More about :term:`CollectionIdAlreadyExist`
+
+            * ``InvalidCollectionId``
+
+              If Collection instantiated but name
+              is not defined or not set.
+              More about :term:`InvalidCollectionId`
+
+        Sample usage:
 
         .. code::
 
