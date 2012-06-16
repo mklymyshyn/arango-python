@@ -112,14 +112,14 @@ class TestCollection(TestsBase):
             self.c.info()
         )
 
-    def test_param(self):
-        response = self.c.param(
+    def test_properties(self):
+        response = self.c.properties(
             waitForSync=True
         )
 
         url = "{0}{1}".format(
             self.conn.url,
-            self.c.PARAM_COLLECTION_PATH.format(self.c.name)
+            self.c.PROPERTIES_COLLECTION_PATH.format(self.c.name)
         )
 
         assert_equal(response.url, url)
@@ -127,11 +127,11 @@ class TestCollection(TestsBase):
         test_data = {"waitForSync": True}
         test_args = {"data": json.dumps(test_data)}
 
-        response = self.c.param(waitForSync=True)
+        response = self.c.properties(waitForSync=True)
         assert_equal(response.url, url)
         assert_equal(response.args, test_args)
 
-        response = self.c.param()
+        response = self.c.properties()
         assert_equal(response.args, {})
 
     def test_rename(self):

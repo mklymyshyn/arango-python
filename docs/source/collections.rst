@@ -63,10 +63,14 @@ For example::
 Manipulate collection
 ~~~~~~~~~~~~~~~~~~~~~
 
+**Arango DB** provide rich API to manipulate collections
+Collection instance methods is quite rich. Here is
+documentation which describe :term:`Collections REST Api`
+
 .. autoclass:: arango.collection.Collection
-    :members: cid, response, info,
+    :members: cid, response, info, properties,
               create, delete, update, rename,
-              count, __len__, param,
+              count, __len__,
               index, documents, edges,
               load, unload, truncate
 

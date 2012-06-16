@@ -7,6 +7,10 @@ Glossary
 .. glossary::
     :sorted:
 
+    Collections REST Api
+        This is an introduction to ArangoDB's
+        Http Interface for collections. `HttpCollection <https://github.com/triAGENS/ArangoDB/wiki/HttpCollection>`_
+
     Edges REST Api
         REST API for manipulate Edges trought HTTP interface of ArangoDB.
         Documentation about `RestEdge <https://github.com/triAGENS/ArangoDB/wiki/RestEdge>`_

@@ -87,7 +87,7 @@ class Collection(object):
     LOAD_COLLECTION_PATH = "/_api/collection/{0}/load"
     UNLOAD_COLLECTION_PATH = "/_api/collection/{0}/unload"
     TRUNCATE_COLLECTION_PATH = "/_api/collection/{0}/truncate"
-    PARAM_COLLECTION_PATH = "/_api/collection/{0}/properties"
+    PROPERTIES_COLLECTION_PATH = "/_api/collection/{0}/properties"
     RENAME_COLLECTION_PATH = "/_api/collection/{0}/rename"
 
     INFO_ALLOWED_RESOURCES = ["count", "figures"]
@@ -194,23 +194,44 @@ class Collection(object):
         return None
 
     def count(self):
+        """
+        Get count of all documents in collection
+        """
         response = self.info(resource="count")
         return response.get("count", 0)
 
     def __len__(self):
+        """
+        Exactly the same as ``count`` but it's possible
+        to use in more convenient way
+
+        .. code::
+
+                assert c.test.count() == len(c.test)
+
+        """
         return self.count()
 
     def load(self):
+        """
+        Load collection into memory
+        """
         return self.connection.put(
             self.LOAD_COLLECTION_PATH.format(self.name)
         )
 
-    def unload(self, name=None):
+    def unload(self):
+        """
+        Unload collection from memory
+        """
         return self.connection.put(
             self.UNLOAD_COLLECTION_PATH.format(self.name)
         )
 
     def delete(self):
+        """
+        Delete collection
+        """
         response = self.connection.delete(
             self.DELETE_COLLECTION_PATH.format(self.name)
         )
@@ -256,15 +277,28 @@ class Collection(object):
 
         return False
 
-    def param(self, **params):
-        action = "get" if params == {} else "put"
+    def properties(self, **props):
+        """
+        Set or get collection properties.
+
+        If ``**props`` are empty eq no keyed arguments
+        specified then this method return properties for
+        current **Collection**.
+
+        Otherwise method will set or update properties
+        using values from ``**props``
+        """
+        action = "get" if props == {} else "put"
 
         return getattr(self.connection, action)(
-            self.PARAM_COLLECTION_PATH.format(self.name),
-            data=params
+            self.PROPERTIES_COLLECTION_PATH.format(self.name),
+            data=props
         )
 
     def truncate(self):
+        """
+        Truncate current **Collection**
+        """
         return self.connection.put(
             self.TRUNCATE_COLLECTION_PATH.format(self.name)
         )

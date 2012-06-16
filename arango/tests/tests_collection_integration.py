@@ -120,7 +120,7 @@ class TestsCollection(TestsIntegration):
         logger.info("Removing last collection")
         c.collection.sample2.delete()
 
-    def test_details_and_param(self):
+    def test_details_and_properties(self):
         c = self.conn
         c.collection.test.create()
 
@@ -128,15 +128,15 @@ class TestsCollection(TestsIntegration):
         assert_equal(response.get("code"), 200)
         assert_false(response.get("waitForSync", False))
 
-        c.collection.test.param(waitForSync=True)
+        c.collection.test.properties(waitForSync=True)
 
         # renew
-        response = c.collection.test.param()
+        response = c.collection.test.properties()
         assert_true(response.get("waitForSync", True))
 
-        c.collection.test.param(waitForSync=False)
+        c.collection.test.properties(waitForSync=False)
 
-        response = c.collection.test.param()
+        response = c.collection.test.properties()
         assert_false(response.get("waitForSync", False))
 
     def test_collection_truncate(self):
