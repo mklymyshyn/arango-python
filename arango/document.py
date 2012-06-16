@@ -35,6 +35,9 @@ class Documents(object):
         return self.count()
 
     def count(self):
+        """
+        Get count of all documents in :ref:`collection`
+        """
         response = self.connection.get(
             self.DOCUMENTS_PATH.format(self.collection.cid)
         )
@@ -65,18 +68,49 @@ class Documents(object):
             )
 
     def create(self, *args, **kwargs):
+        """
+        Shortcut for new documents creation
+        """
         doc = Document(collection=self.collection)
         return doc.create(*args, **kwargs)
 
-    def delete(self, ref):
-        """Delete document by reference"""
+    def _reach_reference(self, ref_or_document):
+        """
+        Reach reference by type
+        """
+        if issubclass(type(ref_or_document), Document):
+            ref = ref_or_document.id
+        else:
+            ref = ref_or_document
 
-        doc = Document(collection=self.collection, id=ref)
+        return ref
+
+    def delete(self, ref_or_document):
+        """
+        Delete document shorcut
+
+        ``ref_or_document`` may be either plai reference or
+        Document instance
+
+        """
+
+        doc = Document(
+            collection=self.collection,
+            id=self._reach_reference(ref_or_document)
+        )
         return doc.delete()
 
-    def update(self, ref, *args, **kwargs):
-        """Update document by reference"""
-        doc = Document(collection=self.collection, id=ref)
+    def update(self, ref_or_document, *args, **kwargs):
+        """
+        Update document
+
+        ``ref_or_document`` may be either plai reference or
+        Document instance
+        """
+        doc = Document(
+            collection=self.collection,
+            id=self._reach_reference(ref_or_document)
+        )
         return doc.update(*args, **kwargs)
 
 
@@ -110,16 +144,22 @@ class Document(ComparsionMixin):
 
     @property
     def id(self):
+        """
+        Id of the :ref:`Document` instance
+        """
         return self._id
+
+    @property
+    def rev(self):
+        """
+        Revision of the :ref:`Document` instance
+        """
+        return self._rev
 
     @property
     def response(self):
         """Method to get latest response"""
         return self._response
-
-    @property
-    def rev(self):
-        return self._rev
 
     def fetch(self):
         # TODO: maybe need to deal with `etag`
@@ -164,7 +204,7 @@ class Document(ComparsionMixin):
         return self.get(name)
 
     def __setitem__(self, name, value):
-        """Get element by dict-like key"""
+        """Set element by dict-like key"""
 
         self._body[name] = value
 
@@ -196,7 +236,16 @@ class Document(ComparsionMixin):
             self._fetch_lazy = False
 
     def get(self, name=None, default=None):
-        """Getter for body"""
+        """
+        This method very similar to ``dict``'s ``get`` method.
+        The difference is that *default* value should be specified
+        explicitly.
+
+        To get specific value for specific key in body use and default
+        *(fallback)* value ``0``::
+
+            document.get(name="sample_key", default=0)
+        """
 
         if not self._body:
             return default
@@ -211,6 +260,19 @@ class Document(ComparsionMixin):
         return self._body.get(name, default)
 
     def create(self, body, createCollection=False, **kwargs):
+        """
+        Method to create new document.
+
+        Possible arguments: :term:`waitForSync`
+
+        Read more about additional arguments  :term:`Documents REST Api`
+
+        This method may raise :term:`DocumentAlreadyCreated` exception in
+        case document already created.
+
+        Return document instance (``self``) or ``None``
+        """
+
         if self.id is not None:
             raise DocumentAlreadyCreated(
                 "This document already created with id {0}".format(self.id)
@@ -244,6 +306,19 @@ class Document(ComparsionMixin):
         return None
 
     def update(self, newData, save=True, **kwargs):
+        """
+        Method to update document.
+
+        In case ``save`` argument set to ``False`` document will not be
+        updated until ``save()`` method will be called.
+
+        This method may raise :term:`EdgeNotYetCreated` exception
+        in case you trying to update edge which is not saved yet.
+
+        Exception :term:`DocumentIncompatibleDataType` will be raised
+        in case body of the document isn't either ``dict`` or ``list``.
+        """
+
         if issubclass(type(self._body), dict) and \
                 issubclass(type(newData), dict):
             self._body.update(newData)
@@ -264,10 +339,18 @@ class Document(ComparsionMixin):
 
         return True
 
-    def save(self):
+    def save(self, **kwargs):
+        """
+        Method to force save of the document.
+
+        ``kwargs`` will be passed directly to ``requests``
+        arguments.
+        """
+
         response = self.connection.put(
             self.UPDATE_DOCUMENT_PATH.format(self.id),
-            data=self.body
+            data=self.body,
+            **kwargs
         )
 
         self._response = response
@@ -280,6 +363,11 @@ class Document(ComparsionMixin):
         return None
 
     def delete(self):
+        """
+        Delete current document.
+
+        Return ``True`` if success and ``False`` if not
+        """
         response = self.connection.delete(
             self.DELETE_DOCUMENT_PATH.format(self.id)
         )

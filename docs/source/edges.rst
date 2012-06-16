@@ -40,6 +40,8 @@ specified during **Edge** creation::
     assert c.test.edges(from_doc).first().to_document == to_doc
 
 
+.. _edges proxy:
+
 Edges for Collection instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -75,10 +77,10 @@ More details in :term:`Edges REST Api` documentation of **ArangoDB**
 
 .. _edge:
 
-Edge instance methods
-~~~~~~~~~~~~~~~~~~~~~
+Edge
+~~~~
 
-Edge instances methods consist from basic **CRUD** methods and additional
+Edge instance methods consist from basic **CRUD** methods and additional
 methods specific obly for **Edges**:
 
 .. autoclass:: arango.edge.Edge

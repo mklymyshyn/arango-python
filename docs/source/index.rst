@@ -10,12 +10,11 @@ Features support
 ----------------
 
 Driver for Python is incomplete. It supports at the moment:
-
- #. Connections to ArangoDB with custom options
- #. Collections
- #. Documents
- #. Edges
- #. Indexes
+**Connections to ArangoDB with custom options**,
+**Collections**,
+**Documents**,
+**Edges**,
+**Indexes**
 
 What's not supported in current version:
 

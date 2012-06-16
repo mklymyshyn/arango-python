@@ -137,11 +137,16 @@ class Edge(ComparsionMixin):
 
     @property
     def id(self):
-
+        """
+        Id of the :ref:`Edge` instance
+        """
         return self._id
 
     @property
     def rev(self):
+        """
+        Revision of the :ref:`Edge` instance
+        """
         return self._rev
 
     @property
@@ -207,7 +212,7 @@ class Edge(ComparsionMixin):
         return self.get(name)
 
     def __setitem__(self, name, value):
-        """Get element by dict-like key"""
+        """Set element by dict-like key"""
 
         self._body[name] = value
 
@@ -261,6 +266,11 @@ class Edge(ComparsionMixin):
         Possible arguments: :term:`waitForSync`
 
         Read more about additional arguments  :term:`Edges REST Api`
+
+        This method may raise :term:`EdgeAlreadyCreated` exception in
+        case edge already created.
+
+        Return edge instance (``self``) or ``None``
         """
         if self.id != None:
             raise EdgeAlreadyCreated(
@@ -332,6 +342,12 @@ class Edge(ComparsionMixin):
 
         In case ``save`` argument set to ``False`` edge will not be
         updated until ``save()`` method will be called.
+
+        This method may raise :term:`EdgeNotYetCreated` exception
+        in case you trying to update edge which is not saved yet.
+
+        Exception :term:`EdgeIncompatibleDataType` will be raised
+        in case body of the edge isn't ``dict``.
         """
         if not self._id or not self._from or not self._to:
             raise EdgeNotYetCreated(

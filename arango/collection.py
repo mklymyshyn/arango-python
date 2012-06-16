@@ -128,7 +128,9 @@ class Collection(object):
     @property
     def documents(self):
         """
-        Get **Documents** related to Collection
+        Get :ref:`documents` related to Collection.
+
+        Technically return instance of :ref:`documents proxy` object
         """
         if not self._documents:
             self._documents = Documents(collection=self)
@@ -139,6 +141,8 @@ class Collection(object):
     def edges(self):
         """
         Get :ref:`edges` related to Collection.
+
+        Technically return instance of :ref:`edges proxy` object
 
         If this method used to query edges (or called with no arguments)
         it may generated exceptions:

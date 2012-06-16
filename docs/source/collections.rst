@@ -59,9 +59,10 @@ For example::
 
 
 
+.. _collection:
 
-Manipulate collection
-~~~~~~~~~~~~~~~~~~~~~
+Collection
+~~~~~~~~~~
 
 **Arango DB** provide rich API to manipulate collections
 Collection instance methods is quite rich. Here is
