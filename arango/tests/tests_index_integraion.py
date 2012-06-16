@@ -1,7 +1,7 @@
 import logging
 import os
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true
 
 from .tests_integraion_base import TestsIntegration
 
@@ -23,7 +23,7 @@ class TestsIndexIntegration(TestsIntegration):
     def tearDown(self):
         c = self.conn
 
-        for iid in self.cl.index()[0].keys():
+        for iid in self.cl.index().keys():
             c.collection.test.index.delete(iid)
 
         c.collection.test.delete()
@@ -31,6 +31,7 @@ class TestsIndexIntegration(TestsIntegration):
         super(TestsIndexIntegration, self).tearDown()
 
     def test_index_create(self):
+        self.cl.index.delete("name")
         response = self.cl.index.create(["name"])
 
         assert_equal(
@@ -39,16 +40,16 @@ class TestsIndexIntegration(TestsIntegration):
         )
 
     def test_index_list(self):
-        ids = self.cl.index()[0]
+        ids = self.cl.index()
 
         count = len(ids)
 
         self.cl.index.create(["value"])
-        assert_equal(len(self.cl.index()[0]), count + 1)
+        assert_equal(len(self.cl.index()), count + 1)
 
     def test_index_get(self):
         self.cl.index.create(["value"])
-        ids = self.cl.index()[0]
+        ids = self.cl.index()
         key = ids.keys()[0]
 
         index = self.cl.index.get(key)
@@ -56,10 +57,10 @@ class TestsIndexIntegration(TestsIntegration):
 
     def test_index_delete(self):
         key = self.cl.index.create(["value"]).get("id")
-        count = len(self.cl.index()[0])
+        count = len(self.cl.index())
 
-        rs, resp = self.cl.index.delete(key)
-        assert_equal(len(self.cl.index()[0]), count - 1)
+        assert_true(self.cl.index.delete(key))
+        assert_equal(len(self.cl.index()), count - 1)
 
 
 # execute integrational tests only if `INTEGRATIONAL`

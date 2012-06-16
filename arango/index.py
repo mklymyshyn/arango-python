@@ -21,21 +21,49 @@ class Index(object):
     def __init__(self, collection=None):
         self.connection = collection.connection
         self.collection = collection
+        self._response = None
 
     def __call__(self):
-        """Get list of all available indexes. Returns
-        tuple with indentyfiers and original response"""
+        """
+        Get list of all available indexes. Returns
+        tuple with indentyfiers and original response
+
+        .. code::
+
+            ...
+            c.test.index()
+
+        """
         response = self.connection.get(
             self.INDEXES.format(self.collection.cid)
         )
 
-        return response.get("identifiers", {}), response
+        self._response = response
+        return response.get("identifiers", {})
 
-    def create(self, fields, type="hash", unique=False):
-        """Create new index. By default type is `hash` and
-        `unique=False`"""
+    @property
+    def response(self):
+        """
+        Get latest response
+        """
+        return self._response
 
-        if type not in self.INDEX_TYPES:
+    def create(self, fields, index_type="hash", unique=False):
+        """
+        Create new index. By default type is `hash` and
+        `unique=False`
+
+
+        ``fields`` may be either ``str``, ``list`` or ``tuple``.
+
+        This method may generate :term:`WrongIndexType` exception
+        in case ``index_type`` isn't allowed for Arango DB
+        """
+
+        if not isinstance(fields, (list, tuple)):
+            fields = [fields]
+
+        if index_type not in self.INDEX_TYPES:
             raise WrongIndexType(
                 "The type you provided `{0}` is undefined. "\
                 "Possible values are: {1}".format(
@@ -53,26 +81,31 @@ class Index(object):
             self.CREATE.format(self.collection.cid),
             data=dict(
                 fields=fields,
-                type=type,
+                type=index_type,
                 unique=unique
             )
         )
 
-    def delete(self, id):
+    def delete(self, field_id):
         """Return tuple of two values:
             - bool success or not deletion
             - original response
         """
         response = self.connection.delete(
-            self.DELETE.format(self.collection.cid, id)
+            self.DELETE.format(self.collection.cid, field_id)
         )
 
+        self._response = response
+
         if response.get("code", 500) == 200:
-            return True, response
+            return True
 
-        return False, response
+        return False
 
-    def get(self, id):
+    def get(self, field_id):
+        """
+        Get index by ``id``
+        """
         return self.connection.get(
-            self.READ.format(self.collection.cid, id)
+            self.READ.format(self.collection.cid, field_id)
         )

@@ -34,6 +34,7 @@ Contents
    :maxdepth: 2
 
    collections
+   indexes
    documents
    edges
    exceptions

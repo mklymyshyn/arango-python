@@ -91,7 +91,7 @@ class TestIndex(TestsBase):
 
         response = self.c.index.create(
             ["name"],
-            type=self.c.index.HASH,
+            index_type=self.c.index.HASH,
             unique=False
         )
 
@@ -101,7 +101,7 @@ class TestIndex(TestsBase):
     def test_create_wrong_type(self):
         self.c.index.create(
             ["name"],
-            type="wrong"
+            index_type="wrong"
         )
 
     @raises(EmptyFields)
@@ -114,7 +114,7 @@ class TestIndex(TestsBase):
     def test_create_empty_fields_wrong_type_first(self):
         self.c.index.create(
             [],
-            type="wrong"
+            index_type="wrong"
         )
 
     def test_list(self):
@@ -125,17 +125,17 @@ class TestIndex(TestsBase):
 
         patcher = self.list_response_mock()
         patcher.start()
-        ids, response = self.c.index()
+        ids = self.c.index()
         patcher.stop()
 
         assert_equal(
-            response.url,
+            self.c.index.response.url,
             url
         )
 
         assert_equal(
             ids,
-            response.get("identifiers")
+            self.c.index.response.get("identifiers")
         )
 
     def test_delete(self):
@@ -144,10 +144,10 @@ class TestIndex(TestsBase):
             self.c.index.DELETE.format(self.c.cid, "1")
         )
 
-        is_deleted, response = self.c.index.delete("1")
+        is_deleted = self.c.index.delete("1")
 
         assert_equal(
-            response.url,
+            self.c.index.response.url,
             url
         )
 
@@ -157,7 +157,7 @@ class TestIndex(TestsBase):
         patcher = self.delete_response_mock()
         patcher.start()
 
-        is_deleted, response = self.c.index.delete(1)
+        is_deleted = self.c.index.delete(1)
         patcher.stop()
 
         assert_true(is_deleted)

@@ -5,7 +5,7 @@ Documents
 
 Documents in ArangoDB are JSON objects. These objects can be nested (to any depth) and may contains lists. Each document is unique identified by its document handle.
 
-Small usage example::
+Usage example::
 
 
     from arango import create
