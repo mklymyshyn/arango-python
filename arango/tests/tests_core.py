@@ -8,7 +8,7 @@ from mock import Mock
 from .tests_base import TestsBase
 
 from arango import create
-from arango.core import Connection, Response
+from arango.core import Connection, Response, Resultset
 
 
 class TestConnectionInit(TestsBase):
@@ -126,4 +126,115 @@ class TestResponse(TestsBase):
         assert_equal(
             response.get("value"),
             1
+        )
+
+
+class TestResultset(TestsBase):
+    def setUp(self):
+        self.Base = Mock()
+        self.data = range(3)
+
+        def iterate_mock(rs):
+            for item in rs.data:
+                yield item
+
+        def prepare_resultset_mock(rs, args=None, kwargs=None):
+            response = {"sample": 1}
+
+            rs.response = response
+            rs.count = len(self.data)
+
+            data = self.data[rs._offset:]
+
+            if rs._limit != None:
+                data = self.data[:rs._limit]
+
+            rs.data = data
+
+        self.Base.iterate = iterate_mock
+        self.Base.prepare_resultset = prepare_resultset_mock
+
+        self.rs = Resultset(base=self.Base)
+
+    def tearDown(self):
+        pass
+
+    def test_init(self):
+        rs = Resultset(self.Base, 1, 2, field=True, field2=False)
+
+        assert_equal(rs._args, (1, 2))
+        assert_equal(rs._kwargs, {"field": True, "field2": False})
+
+    def test_response(self):
+        assert_equal(self.rs.response, None)
+
+        test_value = {"value": 1}
+        self.rs._response = test_value
+
+        assert_equal(self.rs.response, test_value)
+
+    def test_iter(self):
+        assert_equal(
+            [item for item in self.rs],
+            self.data
+        )
+
+    def test_last_shortcut(self):
+        assert_equal(
+            self.rs.last,
+            self.data[-1]
+        )
+
+    def test_first_shortcut(self):
+        assert_equal(
+            self.rs.first,
+            self.data[0]
+        )
+
+    def test_offset(self):
+        assert_equal(
+            len([item for item in self.rs.offset(1)]),
+            2
+        )
+
+    def test_limit(self):
+        assert_equal(
+            len([item for item in self.rs.limit(2)]),
+            2
+        )
+
+    def test_data(self):
+        assert_equal(self.rs.data, None)
+
+        self.rs.data = 1
+
+        assert_equal(self.rs.data, 1)
+
+    def test_count_shortcut(self):
+        assert_equal(self.rs.count, 3)
+
+    def test_repr(self):
+        assert_equal(
+            str(self.rs),
+            "<Resultset: {0}>".format(
+                ", ".join([str(i) for i in self.data])
+            )
+        )
+
+    def test_repr_large_resultset(self):
+        dataset = range(self.rs.max_repr_items * 2)
+
+        def iterate_large_dataset(rs):
+            for item in dataset:
+                yield item
+
+        custom_base = Mock()
+        custom_base.iterate = iterate_large_dataset
+
+        assert_equal(
+            str(Resultset(base=custom_base)),
+            "<Resultset: {0}... more>".format(
+                ", ".join([
+                    str(i) for i in dataset[:self.rs.max_repr_items + 1]])
+            )
         )

@@ -77,6 +77,17 @@ class TestsCollection(TestsIntegration):
         logger.info("Removign collection 'test_sample'")
         c.collection.test_sample.delete()
 
+    def test_collection_rename_to_exist_name(self):
+        c = self.conn.collection
+        logger.info("Creating collection 'test' and 'test11")
+
+        c.test.create()
+        c.test1.create()
+
+        assert_false(c.test1.rename("test"))
+
+        c.collection.test1.delete()
+
     def test_load_unload(self):
         c = self.conn
 

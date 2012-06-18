@@ -215,6 +215,7 @@ class Resultset(object):
     @property
     def data(self):
         return self._data
+
     @data.setter
     def data(self, value):
         self._data = value
@@ -227,6 +228,7 @@ class Resultset(object):
         self._offset = offset
         return self
 
+    @property
     def first(self):
         """Return only first element from response"""
         self.limit(1)
@@ -235,6 +237,7 @@ class Resultset(object):
         except IndexError:
             return None
 
+    @property
     def last(self):
         """Return last element from response"""
         try:
@@ -253,11 +256,11 @@ class Resultset(object):
         suff = ""
         items = []
         for i, item in enumerate(self):
-            items.append(str(item))
-
             if i > self.max_repr_items:
                 suff = "... more"
                 break
+
+            items.append(str(item))
 
         return "<Resultset: {0}{1}>".format(
             ", ".join(items), suff
