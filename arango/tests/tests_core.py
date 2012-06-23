@@ -191,6 +191,19 @@ class TestResultset(TestsBase):
             self.data[0]
         )
 
+    def test_first_last_shourcut_exceed(self):
+
+        def iterate_mock(arg):
+            for item in []:
+                yield item
+
+        self.Base.iterate = iterate_mock
+
+        rs = Resultset(base=self.Base)
+
+        assert_equal(rs.first, None)
+        assert_equal(rs.last, None)
+
     def test_offset(self):
         assert_equal(
             len([item for item in self.rs.offset(1)]),

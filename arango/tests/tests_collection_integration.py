@@ -1,7 +1,8 @@
 import logging
 import os
 
-from nose.tools import assert_equal, assert_false, assert_true
+from nose.tools import assert_equal, assert_false, assert_true, \
+                       assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -86,7 +87,7 @@ class TestsCollection(TestsIntegration):
 
         assert_false(c.test1.rename("test"))
 
-        c.collection.test1.delete()
+        c.test1.delete()
 
     def test_load_unload(self):
         c = self.conn
@@ -163,6 +164,34 @@ class TestsCollection(TestsIntegration):
 
         assert_equal(len(c.test), 0)
 
+    def test_proxy_repr(self):
+        self.conn.collection.test.create()
+        assert_equal(
+            repr(self.conn.collection.test.documents),
+            "<ArangoDB Documents Proxy Object>"
+        )
+
+    def test_limit_documents(self):
+        c = self.conn.collection
+        c.test.create()
+
+        c.test.docs.create({"doc": 1})
+        c.test.docs.create({"doc": 2})
+
+        assert_not_equal(
+            self.conn.collection.test.documents().count,
+            1
+        )
+
+        assert_equal(
+            len(self.conn.collection.test.documents()),
+            self.conn.collection.test.documents().count
+        )
+
+        assert_equal(
+            len(self.conn.collection.test.documents().limit(1)),
+            1
+        )
 
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed

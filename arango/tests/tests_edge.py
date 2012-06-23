@@ -176,7 +176,7 @@ class TestEdge(TestDocumentBase):
         mock_from = Mock()
         mock_to = Mock()
 
-        with patch("arango.document.Document.fetch"):
+        with patch("arango.document.Document.lazy_loader"):
             edge1._from = mock_from
             edge1._to = mock_to
             edge2._from = mock_from

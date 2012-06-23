@@ -7,7 +7,8 @@ from nose.tools import assert_equal, raises, assert_false, \
 from arango.document import Document, Documents
 from arango.utils import json
 from arango.exceptions import DocumentAlreadyCreated, \
-                               DocumentIncompatibleDataType
+                               DocumentIncompatibleDataType, \
+                               DocumentNotFound
 
 
 __all__ = ("TestDocument", "TestDocumentBase")
@@ -20,18 +21,28 @@ class TestDocumentBase(TestsBase):
             status_code=200,
             text=json.dumps(dict(
                 _rev=30967598,
-                _id=1,
+                _id="1/30967598",
                 error=False,
                 code=204
             )),
             method="delete"
         )
 
+    def notfound_response_mock(self):
+        return self.response_mock(
+            status_code=404,
+            text=json.dumps(dict(
+                error=True,
+                code=404
+            )),
+            method="get"
+        )
+
     def create_response_mock(self, _id=None, body=None):
         body = body if body != None else {}
         defaults = dict(
             _rev=_id or 30967598,
-            _id=1,
+            _id="1/30967598",
             error=False,
             code=201
         )
@@ -256,6 +267,16 @@ class TestDocument(TestDocumentBase):
 
         doc.update({})
 
+    @raises(DocumentNotFound)
+    def test_document_not_found(self):
+        patcher = self.notfound_response_mock()
+        patcher.start()
+
+        doc = Document(collection=self.c, id="123")
+        doc.body
+
+        patcher.stop()
+
     def test_save(self):
         doc = self.create_document({})
 
@@ -297,3 +318,46 @@ class TestDocument(TestDocumentBase):
 
         assert_equal(doc.rev, 30967599)
         patcher.stop()
+
+    def test_delete_notfound(self):
+        doc = self.create_document({})
+
+        patcher = self.response_mock(
+            status_code=404,
+            text=json.dumps(dict(
+                error=True,
+                code=404
+            )),
+            method="delete"
+        )
+
+        patcher.start()
+        assert_equal(
+            doc.delete(),
+            False
+        )
+        patcher.stop()
+
+    def test_rev(self):
+        doc = self.create_document({})
+
+        doc._rev = None
+
+        assert_not_equal(doc._id, None)
+        assert_equal(doc._rev, None)
+
+        assert_equal(
+            doc.rev,
+            doc._id.split("/")[1]
+        )
+
+    def test_repr(self):
+        doc = self.create_document({})
+
+        assert_equal(
+            repr(doc),
+            "<ArangoDB Document: Reference {0}, Rev: {1}>".format(
+                doc._id,
+                doc._rev
+            )
+        )

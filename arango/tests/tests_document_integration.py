@@ -56,14 +56,112 @@ class TestsDocument(TestsIntegration):
 
         assert_not_equal(doc, None)
 
-        count = c.collection.test.documents.count()
+        count = c.collection.test.documents.count
 
         assert_true(doc.delete())
 
         assert_equal(
-            c.collection.test.documents.count(),
+            c.collection.test.documents.count,
             count - 1
         )
+
+    def test_document_deletion_collection(self):
+        c = self.conn.collection
+
+        logger.info("Creating collection 'test'")
+        c.test.create()
+
+        doc1 = c.test.documents.create([1])
+        doc2 = c.test.documents.create([2])
+
+        prev_count = c.test.documents.count
+
+        # delete by document itself
+        c.test.documents.delete(doc1)
+
+        assert_equal(c.test.documents.count, prev_count - 1)
+
+        # delete by reference only
+        c.test.documents.delete(doc2.id)
+
+        assert_equal(c.test.documents.count, prev_count - 2)
+
+    def test_document_update(self):
+        c = self.conn.collection
+
+        logger.info("Creating collection 'test'")
+        c.test.create()
+
+        doc = c.test.documents.create([1])
+
+        c.test.documents.update(doc, [2])
+
+        assert_equal(
+            c.test.documents().first.body,
+            [1, 2]
+        )
+
+        c.test.documents.delete(doc)
+
+        doc1 = c.test.documents.create({"name": "John"})
+
+        c.test.documents.update(doc1.id, {"position": "manager"})
+
+        assert_equal(
+            dict(
+                [(key, val) for key, val in \
+                    c.test.documents().first.body.iteritems() \
+                        if key in ["name", "position"]
+                ]
+            ),
+            {
+                "name": "John",
+                "position": "manager"
+            }
+        )
+
+    def test_document_body_setter(self):
+        c = self.conn.collection
+
+        logger.info("Creating collection 'test'")
+        c.test.create()
+
+        doc = c.test.documents.create([1])
+
+        doc.body = [2]
+        doc.save()
+
+        assert_equal(
+            c.test.documents().first.body,
+            [2]
+        )
+
+    def test_list_of_documents(self):
+        c = self.conn.collection
+
+        c.test.create()
+
+        docs = [
+            {"title": "doc1"},
+            {"title": "doc2"},
+            {"title": "doc3"}
+        ]
+        for doc in docs:
+            c.test.documents.create(doc)
+
+        for index, doc in enumerate(c.test.documents()):
+            for src in docs:
+                flag = False
+
+                for key, val in src.iteritems():
+                    if doc.body.get(key) == val:
+                        flag = True
+                        break
+
+                if flag:
+                    break
+
+            assert_true(flag)
 
 
 # execute integrational tests only if `INTEGRATIONAL`

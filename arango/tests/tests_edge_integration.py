@@ -45,7 +45,7 @@ class TestsEdge(TestsIntegration):
         )
 
         result = self.c.test.edges(
-            self.from_doc, direction="out").first()
+            self.from_doc, direction="out").first
 
         assert_equal(
             result.to_document,
@@ -53,7 +53,7 @@ class TestsEdge(TestsIntegration):
         )
 
         assert_equal(
-            self.c.test.edges(self.from_doc, direction="in").first(),
+            self.c.test.edges(self.from_doc, direction="in").first,
             None
         )
 
@@ -65,13 +65,30 @@ class TestsEdge(TestsIntegration):
             {"custom": 1}
         )
 
-        self.c.test.edges(self.from_doc).first().delete()
+        self.c.test.edges(self.from_doc).first.delete()
 
         assert_equal(
-            self.c.test.edges(self.from_doc).first(),
+            self.c.test.edges(self.from_doc).first,
             None
         )
 
+    def test_edge_update(self):
+        # creating edge with custom data
+        self.c.test.edges.create(
+            self.from_doc,
+            self.to_doc,
+            {"custom": 1}
+        )
+
+        new_doc = self.c.test.documents.create({"value": 2})
+        edge = self.c.test.edges(self.from_doc).first
+
+        edge.update(
+            edge.body,
+            from_doc=edge.from_document,
+            to_doc=new_doc,
+            save=True
+        )
 
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed
