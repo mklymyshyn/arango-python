@@ -13,7 +13,7 @@ Package is incomplete. It supports at the moment:
 
 What's not supported in current version:
 
- - Ability to making Queries
+ - Ability to make Queries
  - Cursors
 
 For more details please read **[documentation](http://arango.klymyshyn.com)**
