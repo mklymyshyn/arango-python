@@ -21,34 +21,15 @@ What's not supported in current version:
   #. Ability to making Queries
   #. Cursors
 
-Platforms and Python versions
------------------------------
-
-This release support *Python 2.6*, *Python 2.7* and *PyPy 1.8*.
-
-Next in chain are *PyPy 1.9* and *Python 3.3*
-
-Contents
----------
-.. toctree::
-   :maxdepth: 2
-
-   collections
-   indexes
-   documents
-   edges
-   exceptions
-   glossary
-   guidelines
-
-
 Getting started
 ---------------
 
 Installation
 ~~~~~~~~~~~~~
 
-Library isn't public yet so just add it to your ``PYTHONPATH``
+Library is in early alpha so it's not on PyPi yet. To install use `pip`::
+
+  pip install -e git+https://github.com/joymax/arango-python.git#egg=arango
 
 
 Usage example
@@ -77,6 +58,28 @@ It's quite simple to start work with **ArangoDB**::
 
     # get value of key `sample_key`
     voca.test_collection.documents().first.get("sample_key")
+
+
+Contents
+---------
+.. toctree::
+   :maxdepth: 2
+
+   collections
+   indexes
+   documents
+   edges
+   exceptions
+   glossary
+   guidelines
+
+
+Platforms and Python versions
+-----------------------------
+
+This release support *Python 2.6*, *Python 2.7* and *PyPy 1.8*.
+
+Next in chain are *PyPy 1.9* and *Python 3.3*
 
 
 
