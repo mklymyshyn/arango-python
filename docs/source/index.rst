@@ -70,13 +70,13 @@ It's quite simple to start work with **ArangoDB**::
     })
 
     # get first document
-    voca.test_collection.documents().first()
+    voca.test_collection.documents().first
 
     # get document body
-    voca.test_collection.documents().first().body
+    voca.test_collection.documents().first.body
 
     # get value of key `sample_key`
-    voca.test_collection.documents().first().get("sample_key")
+    voca.test_collection.documents().first.get("sample_key")
 
 
 

@@ -3,3 +3,4 @@ env/*
 .coverage
 coverage/*
 docs/build/*
+*.egg-info

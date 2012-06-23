@@ -36,8 +36,8 @@ specified during **Edge** creation::
     # getting with direction
     c.test.edges(from_doc, direction="in")
 
-    assert c.test.edges(from_doc).first().from_document == from_doc
-    assert c.test.edges(from_doc).first().to_document == to_doc
+    assert c.test.edges(from_doc).first.from_document == from_doc
+    assert c.test.edges(from_doc).first.to_document == to_doc
 
 
 .. _edges proxy:

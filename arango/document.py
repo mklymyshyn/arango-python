@@ -6,10 +6,9 @@ from .exceptions import DocumentAlreadyCreated, \
                         DocumentNotFound
 
 
-logger = logging.getLogger(__name__)
-
-
 __all__ = ("Documents", "Document",)
+
+logger = logging.getLogger(__name__)
 
 
 class Documents(object):
@@ -54,7 +53,7 @@ class Documents(object):
 
         rs.response = response
         rs.count = len(doc_urls)
-        logger.error("XXX: %r" % doc_urls)
+
         if rs._limit != None:
             doc_urls = doc_urls[:rs._limit]
 
@@ -228,7 +227,23 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
     @property
     def body(self):
-        """Return whole document"""
+        """
+        Return whole document.
+
+        This property setter also should be used if
+        overwriting of whole document is required.
+
+        .. code::
+
+            doc = c.documents.create([1])
+
+            assert c.documents().first.body == [1]
+
+            doc.body = [2]
+            doc.save()
+
+            assert c.documents().first.body == [2]
+        """
         return self.get()
 
     @body.setter
