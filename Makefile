@@ -1,5 +1,10 @@
 
 .PHONY: coverage
+.DEFAULT: raw
+
+
+export INTEGRATION=1
+
 
 coverage:
 	@echo "Starting ..."
@@ -22,3 +27,11 @@ one:
 doc:
 	cd docs && make clean && make html && \
 		rsync -avz build/html/* -e ssh apps@klymyshyn.com:/home/apps/arango/*
+
+%:
+	@echo Test: "$*"
+	@echo
+	@echo "$*" | sed 's#(##g; s#)##g;' | \
+		awk '{printf("%s.%s", $$2, $$1)}' | \
+		sed 's#.Test#:Test#g'
+	@echo

@@ -1,11 +1,12 @@
 import copy
 import logging
 
-from .comparsion import ComparsionMixin
+from .mixins import ComparsionMixin, LazyLoadMixin
 from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
                         EdgeIncompatibleDataType, \
-                        DocumentIncompatibleDataType
+                        DocumentIncompatibleDataType, \
+                        EdgeNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -115,10 +116,15 @@ class Edge(ComparsionMixin):
     """
 
     EDGE_PATH = "/_api/edge"
+    READ_EDGE_PATH = "/_api/edge/{0}"
     DELETE_EDGE_PATH = "/_api/edge/{0}"
     UPDATE_EDGE_PATH = "/_api/edge/{0}"
 
     IGNORE_KEYS = set(["_rev", "_id", "_from", "_to"])
+    LAZY_LOAD_HANDLERS = [
+        "id", "rev", "body", "get", "update", "delete",
+        "from_document", "to_document"
+    ]
 
     def __init__(self, collection=None,
                  _id=None, _rev=None,
@@ -134,6 +140,9 @@ class Edge(ComparsionMixin):
 
         self._from_document = None
         self._to_document = None
+
+        if _id != None:
+            self._body = kwargs
 
     @property
     def id(self):
@@ -170,6 +179,7 @@ class Edge(ComparsionMixin):
         """
         To vertex, return instance of ``Document`` or ``None``
         """
+
         if not self._to:
             return None
 
@@ -187,14 +197,11 @@ class Edge(ComparsionMixin):
         additionally compare FROM and TO documents
         """
 
-        if other == None:
-            return -1
-
         if super(Edge, self).__cmp__(other) != 0:
             return -1
 
-        if self.from_document == other.from_document and \
-                self.to_document == other.to_document:
+        if self._from == other._from and \
+                self._to == other._to:
             return 0
 
         return -1
@@ -272,6 +279,7 @@ class Edge(ComparsionMixin):
 
         Return edge instance (``self``) or ``None``
         """
+
         if self.id != None:
             raise EdgeAlreadyCreated(
                 "This edge already created with id {0}".format(self.id)
@@ -392,7 +400,7 @@ class Edge(ComparsionMixin):
         # TODO: research it's possible to change
         # from/to edge properties within this method
 
-        data = copy.copy(self.edge)
+        data = copy.copy(self.body or {})
 
         data.update({
             "_from": self._from,

@@ -1,6 +1,6 @@
 import logging
 
-from .comparsion import ComparsionMixin
+from .mixins import ComparsionMixin, LazyLoadMixin
 from .exceptions import DocumentAlreadyCreated, \
                         DocumentIncompatibleDataType, \
                         DocumentNotFound
@@ -32,8 +32,9 @@ class Documents(object):
         return "<ArangoDB Documents Proxy Object>"
 
     def __len__(self):
-        return self.count()
+        return self.count
 
+    @property
     def count(self):
         """
         Get count of all documents in :ref:`collection`
@@ -41,6 +42,7 @@ class Documents(object):
         response = self.connection.get(
             self.DOCUMENTS_PATH.format(self.collection.cid)
         )
+
         return len(response.get("documents", []))
 
     def prepare_resultset(self, rs, args=None, kwargs=None):
@@ -52,6 +54,7 @@ class Documents(object):
 
         rs.response = response
         rs.count = len(doc_urls)
+        logger.error("XXX: %r" % doc_urls)
         if rs._limit != None:
             doc_urls = doc_urls[:rs._limit]
 
@@ -61,7 +64,8 @@ class Documents(object):
         """This method will be called within Resultset so
         it should get list of document"""
 
-        for url in rs.data:
+        #import ipdb; ipdb.set_trace()
+        for url in rs.data or []:
             yield Document(
                 collection=self.collection,
                 resource_url=url
@@ -114,7 +118,7 @@ class Documents(object):
         return doc.update(*args, **kwargs)
 
 
-class Document(ComparsionMixin):
+class Document(ComparsionMixin, LazyLoadMixin):
     """Particular instance of Document"""
 
     DOCUMENT_PATH = "/_api/document"
@@ -122,7 +126,7 @@ class Document(ComparsionMixin):
     UPDATE_DOCUMENT_PATH = "/_api/document/{0}"
     READ_DOCUMENT_PATH = "/_api/document/{0}"
 
-    LAZY_LOAD_HANDLERS = ['id', 'rev', 'body', 'get', 'update', 'delete']
+    LAZY_LOAD_HANDLERS = ["id", "rev", "body", "get", "update", "delete"]
     IGNORE_KEYS = set(["_rev", "_id"])
 
     def __init__(self, collection=None, id=None, resource_url=None):
@@ -138,7 +142,10 @@ class Document(ComparsionMixin):
         self._rev = None
         self._resource_url = resource_url
 
-        self._fetch_lazy = id != None or resource_url != None
+        self._lazy_loaded = True
+
+        if id != None or resource_url != None:
+            self._lazy_loaded = False
 
         self._response = None
 
@@ -154,6 +161,9 @@ class Document(ComparsionMixin):
         """
         Revision of the :ref:`Document` instance
         """
+        if not self._rev and self._id != None:
+            self._rev = self._id.split("/")[1]
+
         return self._rev
 
     @property
@@ -161,7 +171,7 @@ class Document(ComparsionMixin):
         """Method to get latest response"""
         return self._response
 
-    def fetch(self):
+    def lazy_loader(self):
         # TODO: maybe need to deal with `etag`
 
         if self._resource_url != None:
@@ -186,14 +196,15 @@ class Document(ComparsionMixin):
 
         if response.status != 200:
             raise DocumentNotFound(
-                "Sorry, document with handle {0}"\
+                "Sorry, document with handle `{0}` "\
                 "not exist in database".format(self._id)
             )
 
         self._body = response.data
 
-        self._id = response.data.get("_id", self._id)
-        self._rev = response.data.get("_rev", self._rev)
+        if isinstance(response.data, dict):
+            self._id = response.data.get("_id", self._id)
+            self._rev = response.data.get("_rev", self._rev)
 
         self._response = response
 
@@ -208,16 +219,6 @@ class Document(ComparsionMixin):
 
         self._body[name] = value
 
-    def __getattribute__(self, name):
-        """Fetching lazy document"""
-        if name in object.__getattribute__(self, "LAZY_LOAD_HANDLERS"):
-            object.__getattribute__(self, "_handle_lazy")()
-
-        try:
-            return object.__getattribute__(self, name)
-        except KeyError:
-            raise AttributeError
-
     def __repr__(self):
         self._handle_lazy()
         return "<ArangoDB Document: Reference {0}, Rev: {1}>".format(
@@ -230,10 +231,12 @@ class Document(ComparsionMixin):
         """Return whole document"""
         return self.get()
 
-    def _handle_lazy(self):
-        if self._fetch_lazy:
-            self.fetch()
-            self._fetch_lazy = False
+    @body.setter
+    def body(self, value):
+        """
+        Setter for document body
+        """
+        self._body = value
 
     def get(self, name=None, default=None):
         """
@@ -273,7 +276,7 @@ class Document(ComparsionMixin):
         Return document instance (``self``) or ``None``
         """
 
-        if self.id is not None:
+        if self._id != None:
             raise DocumentAlreadyCreated(
                 "This document already created with id {0}".format(self.id)
             )
@@ -296,7 +299,6 @@ class Document(ComparsionMixin):
         # define document ID
         self._response = response
 
-        #import ipdb; ipdb.set_trace()
         if response.status in [200, 201, 202]:
             self._id = response.get("_id")
             self._rev = response.get("_rev")
@@ -308,6 +310,13 @@ class Document(ComparsionMixin):
     def update(self, newData, save=True, **kwargs):
         """
         Method to update document.
+
+        This method is **NOT** for overwriting document body.
+        In case document is ``list`` it will **extend** current
+        document body. In case it's ``dict`` - **update** document body
+        with new data.
+
+        To overwrite document body use ``body`` setter.
 
         In case ``save`` argument set to ``False`` document will not be
         updated until ``save()`` method will be called.

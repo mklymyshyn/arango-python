@@ -56,3 +56,6 @@ List of exceptions
 
     ``EdgeIncompatibleDataType``
         Raised when you provide new body not ``None`` or not ``dict``
+
+    ``EdgeNotFound``
+        Raised in case edge not found in database

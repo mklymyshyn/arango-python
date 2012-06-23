@@ -4,7 +4,7 @@ __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "DocumentIncompatibleDataType", "WrongIndexType",
            "EmptyFields", "EdgeAlreadyCreated",
            "DocumentNotFound", "EdgeNotYetCreated",
-           "EdgeIncompatibleDataType")
+           "EdgeIncompatibleDataType", "EdgeNotFound")
 
 
 class InvalidCollection(Exception):
@@ -52,3 +52,7 @@ class EdgeNotYetCreated(Exception):
 
 class EdgeIncompatibleDataType(Exception):
     """Raises when you provide new body not None or not dict"""
+
+
+class EdgeNotFound(Exception):
+  """Raised in case Edge not found"""

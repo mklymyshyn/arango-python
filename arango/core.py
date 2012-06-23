@@ -246,7 +246,8 @@ class Resultset(object):
             return None
 
     def __len__(self):
-        return self.count
+        self._prepare()
+        return len(self.data)
 
     def __iter__(self):
         self._prepare()
