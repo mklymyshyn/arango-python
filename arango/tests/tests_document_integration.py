@@ -56,12 +56,12 @@ class TestsDocument(TestsIntegration):
 
         assert_not_equal(doc, None)
 
-        count = c.collection.test.documents.count
+        count = int(c.collection.test.documents.count)
 
         assert_true(doc.delete())
 
         assert_equal(
-            c.collection.test.documents.count,
+            int(c.collection.test.documents.count),
             count - 1
         )
 
@@ -74,12 +74,12 @@ class TestsDocument(TestsIntegration):
         doc1 = c.test.documents.create([1])
         doc2 = c.test.documents.create([2])
 
-        prev_count = c.test.documents.count
+        prev_count = int(c.test.documents.count)
 
         # delete by document itself
         c.test.documents.delete(doc1)
 
-        assert_equal(c.test.documents.count, prev_count - 1)
+        assert_equal(int(c.test.documents.count), prev_count - 1)
 
         # delete by reference only
         c.test.documents.delete(doc2.id)

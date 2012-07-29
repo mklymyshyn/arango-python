@@ -7,6 +7,8 @@ from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
                         EdgeIncompatibleDataType, \
                         DocumentIncompatibleDataType, \
                         EdgeNotFound
+from .utils import proxied_document_ref
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +50,14 @@ class Edges(object):
 
         kwargs = kwargs if kwargs != None else {}
 
-        if not args or not issubclass(type(args[0]), Document):
+        if not args or not proxied_document_ref(args[0]):
             raise DocumentIncompatibleDataType(
                 "First argument should be VERTEX (eq document)"
             )
 
         # specify vertex
         kwargs.update({
-            "vertex": args[0].id
+            "vertex": proxied_document_ref(args[0])
         })
 
         response = self.connection.get(
@@ -285,14 +287,8 @@ class Edge(ComparsionMixin):
                 "This edge already created with id {0}".format(self.id)
             )
 
-        from_doc_id = from_doc
-        to_doc_id = to_doc
-
-        if issubclass(type(from_doc), Document):
-            from_doc_id = from_doc.id
-
-        if issubclass(type(to_doc), Document):
-            to_doc_id = to_doc.id
+        from_doc_id = proxied_document_ref(from_doc)
+        to_doc_id = proxied_document_ref(to_doc)
 
         params = {
             "collection": self.collection.cid,
@@ -362,14 +358,8 @@ class Edge(ComparsionMixin):
                 "Sorry, you try to update Edge which is not yet created"
             )
 
-        from_doc_id = from_doc or self._from
-        to_doc_id = to_doc or self._to
-
-        if issubclass(type(from_doc), Document):
-            from_doc_id = from_doc.id
-
-        if issubclass(type(to_doc), Document):
-            to_doc_id = to_doc.id
+        from_doc_id = proxied_document_ref(from_doc) or self._from
+        to_doc_id = proxied_document_ref(to_doc) or self._to
 
         self._from = from_doc_id
         self._to = to_doc_id

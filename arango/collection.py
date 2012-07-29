@@ -1,5 +1,6 @@
 import logging
 
+from .core import ResponseProxy
 from .document import Documents
 from .edge import Edges
 from .index import Index
@@ -29,7 +30,7 @@ class Collections(object):
 
         names = [c.get("name") for c in response.get("collections", [])]
 
-        return names
+        return ResponseProxy(response, names)
 
     def __getattr__(self, name):
         """Lazy init of collection"""
@@ -103,7 +104,6 @@ class Collection(object):
         self._documents = None
         self._edges = None
         self._index = None
-        self._response = None
 
     def __repr__(self):
         return "<Collection '{0}' for {1}>".format(self.name, self.connection)
@@ -132,7 +132,7 @@ class Collection(object):
 
         Technically return instance of :ref:`documents proxy` object
         """
-        if not self._documents:
+        if self._documents == None:
             self._documents = Documents(collection=self)
 
         return self._documents
@@ -161,13 +161,6 @@ class Collection(object):
         return self._edges
 
     @property
-    def response(self):
-        """
-        Get latest response
-        """
-        return self._response
-
-    @property
     def docs(self):
         """
         Shortcut for `documents` property
@@ -183,9 +176,9 @@ class Collection(object):
         if resource not in self.INFO_ALLOWED_RESOURCES:
             resource = ""
 
-        return self.connection.get(
+        return ResponseProxy(self.connection.get(
             self.COLLECTION_DETAILS_PATH.format(self.name, resource)
-        )
+        ))
 
     def create(self, waitForSync=False):
         """
@@ -201,12 +194,10 @@ class Collection(object):
             )
         )
 
-        self._response = response
-
         if response.status == 200:
-            return self
+            return ResponseProxy(response, result=self)
 
-        return None
+        return ResponseProxy(response)
 
     def count(self):
         """
@@ -251,12 +242,10 @@ class Collection(object):
             self.DELETE_COLLECTION_PATH.format(self.name)
         )
 
-        self._response = response
-
         if response.status == 200:
-            return True
+            return ResponseProxy(response, True)
 
-        return False
+        return ResponseProxy(response, False)
 
     def rename(self, name=None):
         """
@@ -308,15 +297,13 @@ class Collection(object):
             data=dict(name=name)
         )
 
-        self._response = response
-
         if not response.is_error:
             # pass new name to connection
             # change current id of the collection
             self.connection.collection.rename_collection(self, name)
-            return True
+            return ResponseProxy(response, True)
 
-        return False
+        return ResponseProxy(response, False)
 
     def properties(self, **props):
         """
@@ -331,15 +318,15 @@ class Collection(object):
         """
         action = "get" if props == {} else "put"
 
-        return getattr(self.connection, action)(
+        return ResponseProxy(getattr(self.connection, action)(
             self.PROPERTIES_COLLECTION_PATH.format(self.name),
             data=props
-        )
+        ))
 
     def truncate(self):
         """
         Truncate current **Collection**
         """
-        return self.connection.put(
+        return ResponseProxy(self.connection.put(
             self.TRUNCATE_COLLECTION_PATH.format(self.name)
-        )
+        ))

@@ -57,7 +57,7 @@ class TestCollection(TestsBase):
         assert_equal(self.c.cid, "test")
 
     def test_create(self):
-        self.c.create()
+        created = self.c.create()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.CREATE_COLLECTION_PATH
@@ -66,8 +66,8 @@ class TestCollection(TestsBase):
         test_data = {"name": "test", "waitForSync": False}
         test_args = {"data": json.dumps(test_data)}
 
-        assert_equal(self.c.response.url, url)
-        assert_equal(self.c.response.args, test_args)
+        assert_equal(created.response.url, url)
+        assert_equal(created.response.args, test_args)
 
     def test_load(self):
         response = self.c.load()
@@ -88,13 +88,14 @@ class TestCollection(TestsBase):
         assert_equal(response.url, url)
 
     def test_delete(self):
-        self.c.delete()
+        deleted = self.c.delete()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.DELETE_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(self.c.response.url, url)
+        assert_equal(deleted.response.url, url)
+        assert_equal(deleted, False)
 
     def test_truncate(self):
         response = self.c.truncate()
@@ -104,6 +105,8 @@ class TestCollection(TestsBase):
             self.c.TRUNCATE_COLLECTION_PATH.format(self.c.name)
         )
 
+        # this workaround in case resultset *is* None
+        # proxy will call ``response`` attributes directly
         assert_equal(response.url, url)
 
     def test_info(self):
@@ -150,11 +153,10 @@ class TestCollection(TestsBase):
 
         mock(url, test_args).is_error = False
 
-        assert_true(
-            self.c.rename(name="test1")
-        )
+        renamed = self.c.rename(name="test1")
+        assert_true(renamed)
 
-        assert_equal(self.c.response.url, mock().url)
+        assert_equal(renamed.response.url, mock().url)
 
         assert_equal(self.c.name, "test1")
         assert_equal(self.c.cid, "test1")

@@ -29,21 +29,21 @@ class TestsCollection(TestsIntegration):
 
         logger.info("Creationg new collection 'test'")
 
-        c.collection.test.create()
-        assert_equal(c.collection.test.response.get("status"), 3)
-        assert_equal(c.collection.test.response.status, 200)
+        created = c.collection.test.create()
+        assert_equal(created.response.get("status"), 3)
+        assert_equal(created.response.status, 200)
 
-        assert_false(c.collection.test.response.get("waitForSync"))
-        assert_false(c.collection.test.response.get("error"))
+        assert_false(created.response.get("waitForSync"))
+        assert_false(created.response.get("error"))
 
         logger.info("Deleting collection 'test'")
         c.collection.test.delete()
 
         logger.info("Deleting collection 'test' with waitForSync=True")
-        c.collection.test.create(waitForSync=True)
+        created = c.collection.test.create(waitForSync=True)
 
-        assert_equal(c.collection.test.response.get("code"), 200)
-        assert_true(c.collection.test.response.get("waitForSync"))
+        assert_equal(created.response.get("code"), 200)
+        assert_true(created.response.get("waitForSync"))
 
     def test_colletion_deletion(self):
         c = self.conn
@@ -52,10 +52,11 @@ class TestsCollection(TestsIntegration):
         c.collection.test.create()
 
         logger.info("Deleting collection 'test'")
-        assert_true(c.collection.test.delete())
+        deleted = c.collection.test.delete()
+        assert_true(deleted)
 
-        assert_equal(c.collection.test.response.get("code"), 200)
-        assert_false(c.collection.test.response.get("error"))
+        assert_equal(deleted.response.get("code"), 200)
+        assert_false(deleted.response.get("error"))
 
     def test_collection_rename(self):
         c = self.conn
@@ -64,12 +65,11 @@ class TestsCollection(TestsIntegration):
         c.collection.test.create()
 
         logger.info("Renaming collection to 'test_sample'")
-        assert_true(
-                c.collection.test.rename(name="test_sample")
-        )
+        renamed = c.collection.test.rename(name="test_sample")
+        assert_true(renamed)
 
-        assert_equal(c.collection.test_sample.response.get("code"), 200)
-        assert_false(c.collection.test_sample.response.get("error"))
+        assert_equal(renamed.response.get("code"), 200)
+        assert_false(renamed.response.get("error"))
 
         response = c.collection.test_sample.load()
         assert_equal(response.get("code"), 200)

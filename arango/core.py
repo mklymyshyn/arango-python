@@ -2,10 +2,9 @@ import logging
 import requests
 import urllib
 
-from .collection import Collections
 from .utils import json
 
-__all__ = ("Connection", "Response", "Resultset")
+__all__ = ("Connection", "Response", "Resultset", "ResponseProxy")
 
 
 logger = logging.getLogger(__name__)
@@ -120,6 +119,8 @@ class Connection(object):
 
     @property
     def collection(self):
+        from .collection import Collections
+
         if not self._collection:
             self._collection = Collections(self)
 
@@ -170,6 +171,95 @@ class Response(dict):
 
     def __repr__(self):
         return "<Response for {0}: {1}>".format(repr(self.__dict__), self.url)
+
+
+class ResponseProxy(object):
+    """
+    Proxy object which should behave exactly like
+    provided `result` argument or `resultset` property but
+    provide additional ``response`` property to have
+    access to Arango DB Response.
+
+    .. warning::
+        In case ``result`` **equal to ** ``None`` all attribute
+        calls will be proxied directly to ``Response`` instance
+    """
+    def __init__(self, response, result=None):
+        self._response = response
+
+        # avoiding multiinheritance
+        if isinstance(result, ResponseProxy):
+            self._resultset = result.resultset
+
+            result.resultset = None
+            result.response = None
+        else:
+            self._resultset = result
+
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self, value):
+        self._response = value
+
+    @property
+    def resultset(self):
+        return self._resultset
+
+    @resultset.setter
+    def resultset(self, value):
+        self._resultset = value
+
+    def __getattr__(self, attr, **kwargs):
+        if attr in ("_resultset", "_response"):
+            return self.__dict__[attr]
+
+        if self.resultset == None:
+            return getattr(self.response, attr)
+
+        return getattr(self.resultset, attr)
+
+    def __setattr__(self, attr, value):
+        if attr in ("_resultset", "_response"):
+            self.__dict__[attr] = value
+            return
+
+        if not self.resultset:
+            return self.response.__setattr__(attr, value)
+
+        return self.resultset.__setattr__(attr, value)
+
+    def __nonzero__(self):
+        return bool(self.resultset)
+
+    def __len__(self):
+        return len(self._resultset)
+
+    def __iter__(self):
+        return self._resultset.__iter__()
+
+    def __eq__(self, item):
+        return self.resultset == item
+
+    def __call__(self, *args, **kwargs):
+        return self.resultset.__call__(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.resultset)
+
+    def __repr__(self):
+        return repr(self.resultset)
+
+    def __getitem__(self, *args, **kwargs):
+        return self.resultset.__getitem__(*args, **kwargs)
+
+    def __setitem__(self, *args, **kwargs):
+        return self.resultset.__setitem__(*args, **kwargs)
+
+    def __get__(self, *args, **kwargs):
+        return self.resultset.__get__(*args, **kwargs)
 
 
 class Resultset(object):

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class Cursor(object):
     """API to work with Cursors in ArangoDB.
     I don't see a reason why it shouldn't be a
-    usual routine to work with AQL.
+    common routine to work with AQL.
 
     Quote from ArangoDB Wiki:
         Note: the server will also destroy abandoned

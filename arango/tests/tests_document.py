@@ -2,7 +2,7 @@
 from .tests_base import TestsBase
 
 from nose.tools import assert_equal, raises, assert_false, \
-                       assert_not_equal
+                       assert_not_equal, assert_true
 
 from arango.document import Document, Documents
 from arango.utils import json
@@ -147,9 +147,9 @@ class TestDocument(TestDocumentBase):
         doc._rev = 1
         doc._body = {}
 
-        doc.delete()
+        deleted = doc.delete()
 
-        assert_equal(doc.response.url, url)
+        assert_true(url in deleted.response.url)
 
         assert_equal(doc.id, None)
         assert_equal(doc.rev, None)
@@ -296,17 +296,17 @@ class TestDocument(TestDocumentBase):
         test_data = {
             "name": "sample"
         }
-        doc.update(test_data)
+        updated = doc.update(test_data)
 
         url = "{0}{1}".format(
             doc.connection.url,
             doc.UPDATE_DOCUMENT_PATH.format(doc.id)
         )
 
-        assert_equal(doc.rev, 30967599)
-        assert_equal(doc.response.url, url)
+        assert_equal(updated.rev, 30967599)
+        assert_equal(updated.response.url, url)
         assert_equal(
-            doc.response.args,
+            updated.response.args,
             dict(data=json.dumps(test_data))
         )
 
@@ -347,7 +347,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc._rev, None)
 
         assert_equal(
-            doc.rev,
+            str(doc.rev),
             doc._id.split("/")[1]
         )
 

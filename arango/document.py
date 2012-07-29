@@ -1,10 +1,11 @@
 import logging
 
+from .core import ResponseProxy
 from .mixins import ComparsionMixin, LazyLoadMixin
 from .exceptions import DocumentAlreadyCreated, \
                         DocumentIncompatibleDataType, \
                         DocumentNotFound
-
+from .utils import proxied_document_ref
 
 __all__ = ("Documents", "Document",)
 
@@ -42,7 +43,7 @@ class Documents(object):
             self.DOCUMENTS_PATH.format(self.collection.cid)
         )
 
-        return len(response.get("documents", []))
+        return ResponseProxy(response, len(response.get("documents", [])))
 
     def prepare_resultset(self, rs, args=None, kwargs=None):
         response = self.connection.get(
@@ -77,17 +78,6 @@ class Documents(object):
         doc = Document(collection=self.collection)
         return doc.create(*args, **kwargs)
 
-    def _reach_reference(self, ref_or_document):
-        """
-        Reach reference by type
-        """
-        if issubclass(type(ref_or_document), Document):
-            ref = ref_or_document.id
-        else:
-            ref = ref_or_document
-
-        return ref
-
     def delete(self, ref_or_document):
         """
         Delete document shorcut
@@ -99,7 +89,7 @@ class Documents(object):
 
         doc = Document(
             collection=self.collection,
-            id=self._reach_reference(ref_or_document)
+            id=proxied_document_ref(ref_or_document)
         )
         return doc.delete()
 
@@ -112,7 +102,7 @@ class Documents(object):
         """
         doc = Document(
             collection=self.collection,
-            id=self._reach_reference(ref_or_document)
+            id=proxied_document_ref(ref_or_document)
         )
         return doc.update(*args, **kwargs)
 
@@ -146,8 +136,6 @@ class Document(ComparsionMixin, LazyLoadMixin):
         if id != None or resource_url != None:
             self._lazy_loaded = False
 
-        self._response = None
-
     @property
     def id(self):
         """
@@ -164,11 +152,6 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._rev = self._id.split("/")[1]
 
         return self._rev
-
-    @property
-    def response(self):
-        """Method to get latest response"""
-        return self._response
 
     def lazy_loader(self):
         # TODO: maybe need to deal with `etag`
@@ -205,9 +188,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._id = response.data.get("_id", self._id)
             self._rev = response.data.get("_rev", self._rev)
 
-        self._response = response
-
-        return self
+        return ResponseProxy(response, self)
 
     def __getitem__(self, name):
         """Get element by dict-like key"""
@@ -311,14 +292,11 @@ class Document(ComparsionMixin, LazyLoadMixin):
             data=body
         )
 
-        # define document ID
-        self._response = response
-
         if response.status in [200, 201, 202]:
             self._id = response.get("_id")
             self._rev = response.get("_rev")
             self._body = body
-            return self
+            return ResponseProxy(response, self)
 
         return None
 
@@ -377,14 +355,12 @@ class Document(ComparsionMixin, LazyLoadMixin):
             **kwargs
         )
 
-        self._response = response
-
         # update revision of the document
-        if response.status in [201, 202]:
+        if response.status in [200, 201, 202]:
             self._rev = response.get("_rev")
-            return self
+            return ResponseProxy(response, self)
 
-        return None
+        return ResponseProxy(response, None)
 
     def delete(self):
         """
@@ -396,12 +372,10 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self.DELETE_DOCUMENT_PATH.format(self.id)
         )
 
-        self._response = response
-
         if response.status == 200:
             self._id = None
             self._rev = None
             self._body = None
-            return True
+            return ResponseProxy(response, True)
 
-        return False
+        return ResponseProxy(response, False)
