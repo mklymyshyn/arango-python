@@ -171,6 +171,7 @@ class Edge(ComparsionMixin):
         if not self._from_document:
             self._from_document = Document(
                 collection=self.collection,
+                connection=self.connection,
                 id=self._from
             )
 
@@ -188,6 +189,7 @@ class Edge(ComparsionMixin):
         if not self._to_document:
             self._to_document = Document(
                 collection=self.collection,
+                connection=self.connection,
                 id=self._to
             )
 

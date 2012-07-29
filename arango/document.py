@@ -68,6 +68,7 @@ class Documents(object):
         for url in rs.data or []:
             yield Document(
                 collection=self.collection,
+                connection=self.connection,
                 resource_url=url
             )
 
@@ -75,7 +76,10 @@ class Documents(object):
         """
         Shortcut for new documents creation
         """
-        doc = Document(collection=self.collection)
+        doc = Document(
+            collection=self.collection,
+            connection=self.connection
+        )
         return doc.create(*args, **kwargs)
 
     def delete(self, ref_or_document):
@@ -89,6 +93,7 @@ class Documents(object):
 
         doc = Document(
             collection=self.collection,
+            connection=self.connection,
             id=proxied_document_ref(ref_or_document)
         )
         return doc.delete()
@@ -102,6 +107,7 @@ class Documents(object):
         """
         doc = Document(
             collection=self.collection,
+            connection=self.connection,
             id=proxied_document_ref(ref_or_document)
         )
         return doc.update(*args, **kwargs)
@@ -118,12 +124,13 @@ class Document(ComparsionMixin, LazyLoadMixin):
     LAZY_LOAD_HANDLERS = ["id", "rev", "body", "get", "update", "delete"]
     IGNORE_KEYS = set(["_rev", "_id"])
 
-    def __init__(self, collection=None, id=None, resource_url=None):
+    def __init__(self, collection=None, id=None,
+                 resource_url=None, connection=None):
         """You have to specify collection and you *may* specify either:
          - documents id
          - document resource URL
         """
-        self.connection = collection.connection
+        self.connection = connection
         self.collection = collection
 
         self._body = None

@@ -122,7 +122,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc, None)
 
         # here we modelling properly created document
-        doc = Document(collection=self.c)
+        doc = Document(collection=self.c, connection=self.conn)
 
         doc._body = body
         doc._id = 1
@@ -272,7 +272,11 @@ class TestDocument(TestDocumentBase):
         patcher = self.notfound_response_mock()
         patcher.start()
 
-        doc = Document(collection=self.c, id="123")
+        doc = Document(
+            collection=self.c,
+            id="123",
+            connection=self.conn
+        )
         doc.body
 
         patcher.stop()

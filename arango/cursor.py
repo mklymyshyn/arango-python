@@ -1,5 +1,8 @@
 import logging
 
+from .document import Document
+
+
 __all__ = ("Cursor",)
 
 logger = logging.getLogger(__name__)
@@ -65,7 +68,7 @@ class Cursor(object):
         self._dataset = []
 
         # total count of results, extracted from Database
-        self._count = None
+        self._count = 0
 
     def __iter__(self):
         return self
@@ -78,7 +81,9 @@ class Cursor(object):
         self._position += 1
 
         try:
-            return self._dataset.pop(0)
+            item = self._dataset.pop(0)
+            doc_id = item.get("_id")
+            return Document(id=doc_id, connection=self.connection)
         except IndexError:
             if self._hasMore:
                 self.bulk()
@@ -107,8 +112,14 @@ class Cursor(object):
 
         # TODO: handle errors
         self._hasMore = response.get("hasMore", False)
-        self._count = response.get("count", None)
+        self._count = int(response.get("count", 0))
         self._dataset = response["result"] if "result" in response else []
 
+    def __len__(self):
+        if not self._cursor_id:
+            self.bulk()
+
+        return self._count
+
     def __repr__(self):
-        return "<ArangoDB Cursor Object: %s>" % self.query
+        return "<ArangoDB Cursor Object: {0}>".format(self.query)
