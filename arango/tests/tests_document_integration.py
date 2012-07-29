@@ -56,12 +56,12 @@ class TestsDocument(TestsIntegration):
 
         assert_not_equal(doc, None)
 
-        count = int(c.collection.test.documents.count)
+        count = c.collection.test.documents.count
 
         assert_true(doc.delete())
 
         assert_equal(
-            int(c.collection.test.documents.count),
+            c.collection.test.documents.count,
             count - 1
         )
 

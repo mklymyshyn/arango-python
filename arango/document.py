@@ -43,7 +43,7 @@ class Documents(object):
             self.DOCUMENTS_PATH.format(self.collection.cid)
         )
 
-        return ResponseProxy(response, len(response.get("documents", [])))
+        return len(response.get("documents", []))
 
     def prepare_resultset(self, rs, args=None, kwargs=None):
         response = self.connection.get(
