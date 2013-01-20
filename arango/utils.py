@@ -2,7 +2,7 @@
 try:
     import simplejson as json
 except ImportError:
-    import json as json
+    import json
 
 
 __all__ = ("json", "proxied_document_ref")

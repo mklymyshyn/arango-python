@@ -3,8 +3,7 @@ import logging
 from .core import ResponseProxy
 from .mixins import ComparsionMixin, LazyLoadMixin
 from .exceptions import DocumentAlreadyCreated, \
-                        DocumentIncompatibleDataType, \
-                        DocumentNotFound
+    DocumentIncompatibleDataType, DocumentNotFound
 from .utils import proxied_document_ref
 
 __all__ = ("Documents", "Document",)
@@ -55,7 +54,7 @@ class Documents(object):
         rs.response = response
         rs.count = len(doc_urls)
 
-        if rs._limit != None:
+        if rs._limit is not None:
             doc_urls = doc_urls[:rs._limit]
 
         rs.data = doc_urls
@@ -140,7 +139,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
         self._lazy_loaded = True
 
-        if id != None or resource_url != None:
+        if id is not None or resource_url is not None:
             self._lazy_loaded = False
 
     @property
@@ -155,7 +154,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
         """
         Revision of the :ref:`Document` instance
         """
-        if not self._rev and self._id != None:
+        if not self._rev and self._id is not None:
             self._rev = self._id.split("/")[1]
 
         return self._rev
@@ -163,7 +162,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
     def lazy_loader(self):
         # TODO: maybe need to deal with `etag`
 
-        if self._resource_url != None:
+        if self._resource_url is not None:
             # FIXME: here I have to parse reference from
             # URL which isn't cool
 
@@ -185,7 +184,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
         if response.status != 200:
             raise DocumentNotFound(
-                "Sorry, document with handle `{0}` "\
+                "Sorry, document with handle `{0}` "
                 "not exist in database".format(self._id)
             )
 
@@ -257,10 +256,10 @@ class Document(ComparsionMixin, LazyLoadMixin):
             return default
 
         if isinstance(self._body, (list, tuple)) and \
-            isinstance(name, int):
+                isinstance(name, int):
             return self._body[name]
 
-        if isinstance(self._body, (list, tuple)) or name == None:
+        if isinstance(self._body, (list, tuple)) or name is None:
             return self._body
 
         return self._body.get(name, default)
@@ -279,15 +278,15 @@ class Document(ComparsionMixin, LazyLoadMixin):
         Return document instance (``self``) or ``None``
         """
 
-        if self._id != None:
+        if self._id is not None:
             raise DocumentAlreadyCreated(
                 "This document already created with id {0}".format(self.id)
             )
 
-        params = dict(collection=self.collection.cid)
+        params = {"collection": self.collection.cid}
 
-        if createCollection == True:
-            params.update(dict(createCollection=True))
+        if createCollection is True:
+            params.update({"createCollection": True})
 
         params.update(kwargs)
 
@@ -336,14 +335,14 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._body.extend(newData)
         else:
             raise DocumentIncompatibleDataType(
-                "You trying to update document `{0}` with "\
+                "You trying to update document `{0}` with "
                 "incompatible datat type {1}".format(
                     self.id,
                     repr(newData)
                 )
             )
 
-        if save == True:
+        if save is True:
             return self.save(**kwargs)
 
         return True

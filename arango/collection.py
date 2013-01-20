@@ -6,7 +6,7 @@ from .edge import Edges
 from .index import Index
 from .cursor import Cursor
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
-                        InvalidCollection
+    InvalidCollection
 
 
 logger = logging.getLogger(__name__)
@@ -62,10 +62,10 @@ class Collections(object):
         Private method which should be used by ``Collection``
         instance itself.
         """
-        if collection == None or \
+        if collection is None or \
                 not issubclass(collection.__class__, Collection):
             raise InvalidCollection(
-                "Object '{0}' is not subclass of "\
+                "Object '{0}' is not subclass of "
                 "Collection or is None".format(repr(collection))
             )
 
@@ -101,7 +101,7 @@ class Collection(object):
     INFO_ALLOWED_RESOURCES = ["count", "figures"]
 
     def __init__(self, connection=None, name=None, id=None,
-            createCollection=True):
+                 createCollection=True):
         self.connection = connection
         self.name = name
         self._id = id
@@ -139,7 +139,7 @@ class Collection(object):
 
         Technically return instance of :ref:`documents proxy` object
         """
-        if self._documents == None:
+        if self._documents is None:
             self._documents = Documents(collection=self)
 
         return self._documents
@@ -162,7 +162,7 @@ class Collection(object):
               More about :term:`DocumentIncompatibleDataType`
 
         """
-        if self._edges == None:
+        if self._edges is None:
             self._edges = Edges(collection=self)
 
         return self._edges

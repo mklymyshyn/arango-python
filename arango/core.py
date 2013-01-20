@@ -1,6 +1,8 @@
 import logging
-import requests
 import urllib
+import urllib2
+
+# from _profile import profile
 
 from .utils import json
 
@@ -8,6 +10,33 @@ __all__ = ("Connection", "Response", "Resultset", "ResponseProxy")
 
 
 logger = logging.getLogger(__name__)
+
+
+class Requests(object):
+    @classmethod
+    def build_response(cls, d):
+        return type('ArangoHttpResponse', (object,), d)
+
+    @classmethod
+    def get(cls, url, **kwargs):
+        response = urllib2.urlopen(url)
+        return cls.build_response({
+            "text": response.read(),
+            "status_code": response.code})
+
+    @classmethod
+    def post(cls, url, data=None):
+        req = urllib2.Request(url=url, data=data)
+
+        try:
+            response = urllib2.urlopen(req)
+            return cls.build_response({
+                "text": response.read(),
+                "status_code": response.code})
+        except urllib2.HTTPError, e:
+            return cls.build_response({
+                "status_code": e.code,
+                "text": e.reason})
 
 
 class Connection(object):
@@ -24,11 +53,8 @@ class Connection(object):
         "delete"
     )
 
-    def __init__(self,
-            host="localhost",
-            port=8529,
-            is_https=False,
-            **kwargs):
+    def __init__(self, host="localhost",
+                 port=8529, is_https=False, **kwargs):
 
         self.host = host
         self.port = port
@@ -55,7 +81,7 @@ class Connection(object):
         """Factory of requests wrapped around requests library
         and pass custom arguments provided by init of connection"""
 
-        req = getattr(requests, method)
+        req = getattr(Requests, method)
 
         def requests_factory_wrapper(path, **kwargs):
             """To avoid auto JSON encoding of `data` keywords
@@ -69,7 +95,7 @@ class Connection(object):
                 ))
 
             # Py 2.7 only, yeah!
-            kw = dict((k, v) for k, v in self.additional_args)
+            kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
 
             # NB: don't pass `data` argument in case
@@ -140,17 +166,17 @@ class Response(dict):
         self._data = None
 
         try:
-            if expect_raw == False:
-                self.update(dict((k, v) \
-                    for k, v in json.loads(response.text).iteritems()))
+            if expect_raw is False:
+                self.update({k: v
+                             for k, v in
+                             json.loads(response.text).iteritems()})
 
         except (TypeError, ValueError) as e:
             msg = "Can't parse response from ArangoDB:"\
                 " {0} (URL: {1}, Response: {2})".format(
                 str(e),
                 url,
-                repr(response)
-            )
+                repr(response))
 
             logger.error(msg)
             self.status = 500
@@ -158,7 +184,7 @@ class Response(dict):
 
     @property
     def data(self):
-        if self._data == None:
+        if self._data is None:
             self._data = json.loads(self.response.text)
         return self._data
 
@@ -216,7 +242,7 @@ class ResponseProxy(object):
         if attr in ("_resultset", "_response"):
             return self.__dict__[attr]
 
-        if self.resultset == None:
+        if self.resultset is None:
             return getattr(self.response, attr)
 
         return getattr(self.resultset, attr)
