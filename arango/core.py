@@ -1,42 +1,13 @@
 import logging
 import urllib
-import urllib2
-
-# from _profile import profile
 
 from .utils import json
+from .clients import Client
 
 __all__ = ("Connection", "Response", "Resultset", "ResponseProxy")
 
 
 logger = logging.getLogger(__name__)
-
-
-class Requests(object):
-    @classmethod
-    def build_response(cls, d):
-        return type('ArangoHttpResponse', (object,), d)
-
-    @classmethod
-    def get(cls, url, **kwargs):
-        response = urllib2.urlopen(url)
-        return cls.build_response({
-            "text": response.read(),
-            "status_code": response.code})
-
-    @classmethod
-    def post(cls, url, data=None):
-        req = urllib2.Request(url=url, data=data)
-
-        try:
-            response = urllib2.urlopen(req)
-            return cls.build_response({
-                "text": response.read(),
-                "status_code": response.code})
-        except urllib2.HTTPError, e:
-            return cls.build_response({
-                "status_code": e.code,
-                "text": e.reason})
 
 
 class Connection(object):
@@ -54,12 +25,16 @@ class Connection(object):
     )
 
     def __init__(self, host="localhost",
-                 port=8529, is_https=False, **kwargs):
-
+                 port=8529, is_https=False,
+                 client=None, **kwargs):
+        """
+         - ``client`` - this param provide ability
+           to customize HTTP client
+        """
         self.host = host
         self.port = port
         self.is_https = is_https
-
+        self.client = client or Client
         self.additional_args = kwargs
         self._collection = None
 
@@ -81,7 +56,7 @@ class Connection(object):
         """Factory of requests wrapped around requests library
         and pass custom arguments provided by init of connection"""
 
-        req = getattr(Requests, method)
+        req = getattr(self.client, method)
 
         def requests_factory_wrapper(path, **kwargs):
             """To avoid auto JSON encoding of `data` keywords

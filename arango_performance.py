@@ -8,7 +8,7 @@ from datetime import datetime
 
 from arango import create
 from arango.document import Document
-from arango.core import Requests
+from arango.clients import Client
 
 try:
     import simplejson as json
@@ -114,7 +114,7 @@ def plain_request():
     url = "http://127.0.0.1:8529/_api/document?collection=testdocs_py"
     for i in range(collection_items):
         body = {"value": "test_%d" % i}
-        Requests.post(url, data=json.dumps(body))
+        Client.post(url, data=json.dumps(body))
 
 
 def pycurl_client():
