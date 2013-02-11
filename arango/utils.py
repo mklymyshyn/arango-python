@@ -5,7 +5,7 @@ except ImportError:
     import json
 
 
-__all__ = ("json", "proxied_document_ref")
+__all__ = ("json", "proxied_document_ref", "Proxy")
 
 
 def proxied_document_ref(ref_or_document):

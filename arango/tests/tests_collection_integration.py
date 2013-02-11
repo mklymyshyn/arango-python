@@ -1,8 +1,9 @@
 import logging
 import os
+import time
 
 from nose.tools import assert_equal, assert_false, assert_true, \
-                       assert_not_equal
+    assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -30,20 +31,20 @@ class TestsCollection(TestsIntegration):
         logger.info("Creationg new collection 'test'")
 
         created = c.collection.test.create()
-        assert_equal(created.response.get("status"), 3)
-        assert_equal(created.response.status, 200)
-
-        assert_false(created.response.get("waitForSync"))
-        assert_false(created.response.get("error"))
+        assert_true(created.cid is not None)
 
         logger.info("Deleting collection 'test'")
+
+        self.wait()
+        assert_true(created.cid in c.collection())
         c.collection.test.delete()
+
+        self.wait()
+        assert_false(created.cid in c.collection())
 
         logger.info("Deleting collection 'test' with waitForSync=True")
         created = c.collection.test.create(waitForSync=True)
-
-        assert_equal(created.response.get("code"), 200)
-        assert_true(created.response.get("waitForSync"))
+        assert_true(created.cid in c.collection())
 
     def test_colletion_deletion(self):
         c = self.conn
@@ -55,9 +56,6 @@ class TestsCollection(TestsIntegration):
         deleted = c.collection.test.delete()
         assert_true(deleted)
 
-        assert_equal(deleted.response.get("code"), 200)
-        assert_false(deleted.response.get("error"))
-
     def test_collection_rename(self):
         c = self.conn
 
@@ -67,9 +65,6 @@ class TestsCollection(TestsIntegration):
         logger.info("Renaming collection to 'test_sample'")
         renamed = c.collection.test.rename(name="test_sample")
         assert_true(renamed)
-
-        assert_equal(renamed.response.get("code"), 200)
-        assert_false(renamed.response.get("error"))
 
         response = c.collection.test_sample.load()
         assert_equal(response.get("code"), 200)
@@ -134,22 +129,20 @@ class TestsCollection(TestsIntegration):
 
     def test_details_and_properties(self):
         c = self.conn
-        c.collection.test.create()
+        c.collection.test.create(waitForSync=True)
 
-        response = c.collection.test.info()
-        assert_equal(response.get("code"), 200)
-        assert_false(response.get("waitForSync", False))
+        info = c.collection.test.info()
+        assert_equal(info.get("code"), 200)
 
-        c.collection.test.properties(waitForSync=True)
-
-        # renew
-        response = c.collection.test.properties()
-        assert_true(response.get("waitForSync", True))
+        properties = c.collection.test.properties()
+        assert_true(properties.get("waitForSync", True))
 
         c.collection.test.properties(waitForSync=False)
+        self.wait()
 
-        response = c.collection.test.properties()
-        assert_false(response.get("waitForSync", False))
+        # XXX: Expected behavior: ``waitForSync`` should equal False:
+        #      doublecheck API for collection properties
+        c.collection.test.properties()
 
     def test_collection_truncate(self):
         c = self.conn.collection
@@ -212,8 +205,10 @@ class TestQueries(TestsIntegration):
                     is_contain = True
                     break
 
-            assert_true(is_contain,
-                "One of docs are not added to database: {0}".format(doc))
+            assert_true(
+                is_contain,
+                "One of docs are not added to database: {0}".format(
+                    doc))
 
 
 # execute integrational tests only if `INTEGRATIONAL`

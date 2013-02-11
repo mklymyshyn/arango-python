@@ -29,7 +29,7 @@ setup(
     data_files=[
         ("./", ["README.md"]),
     ],
-    install_requires=["nose", "mock", "requests"],
+    install_requires=["nose", "mock", "pycurl"],
     test_suite="nose",
     classifiers=[
         "Topic :: Database",

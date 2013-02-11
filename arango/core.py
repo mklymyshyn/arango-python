@@ -4,7 +4,8 @@ import urllib
 from .utils import json
 from .clients import Client
 
-__all__ = ("Connection", "Response", "Resultset", "ResponseProxy")
+__all__ = ("Connection", "Response",
+           "Resultset", "ResponseProxy")
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class Connection(object):
         )
 
     def requests_factory(self, method="get"):
-        """Factory of requests wrapped around requests library
+        """Factory of requests wrapped around HTTP library
         and pass custom arguments provided by init of connection"""
 
         req = getattr(self.client, method)
@@ -81,9 +82,9 @@ class Connection(object):
             expect_raw = kw.pop("_expect_raw", False)
 
             # Encode automatically data for POST/PUT
-            if "data" in kw and \
-                    isinstance(kw.get("data"), (dict, list)) \
-                    and not kw.pop("rawData", False):
+            if ("data" in kw and
+                isinstance(kw.get("data"), (dict, list)) and
+                    not kw.pop("rawData", False)):
                 kw["data"] = json.dumps(kw.get("data"))
 
             return Response(
@@ -132,6 +133,10 @@ class Connection(object):
 
 
 class Response(dict):
+    """
+    Representation of HTTP response with
+    additional fields to make response more readable.
+    """
     def __init__(self, url, response, args=None, expect_raw=False):
         self.url = url
         self.response = response
@@ -160,7 +165,11 @@ class Response(dict):
     @property
     def data(self):
         if self._data is None:
-            self._data = json.loads(self.response.text)
+            try:
+                self._data = json.loads(self.response.text)
+            except TypeError:
+                self._data = {}
+
         return self._data
 
     @property
@@ -251,7 +260,7 @@ class ResponseProxy(object):
         return str(self.resultset)
 
     def __repr__(self):
-        return repr(self.resultset)
+        return "<Proxy for {}>".format(repr(self.resultset))
 
     def __getitem__(self, *args, **kwargs):
         return self.resultset.__getitem__(*args, **kwargs)

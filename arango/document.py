@@ -1,9 +1,9 @@
 import logging
 
-from .core import ResponseProxy
 from .mixins import ComparsionMixin, LazyLoadMixin
 from .exceptions import DocumentAlreadyCreated, \
-    DocumentIncompatibleDataType, DocumentNotFound
+    DocumentIncompatibleDataType, DocumentNotFound, \
+    DocuemntUpdateError
 from .utils import proxied_document_ref
 
 __all__ = ("Documents", "Document",)
@@ -194,8 +194,6 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._id = response.data.get("_id", self._id)
             self._rev = response.data.get("_rev", self._rev)
 
-        return ResponseProxy(response, self)
-
     def __getitem__(self, name):
         """Get element by dict-like key"""
         return self.get(name)
@@ -302,7 +300,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._id = response.get("_id")
             self._rev = response.get("_rev")
             self._body = body
-            return ResponseProxy(response, self)
+            return self
 
         return None
 
@@ -358,15 +356,15 @@ class Document(ComparsionMixin, LazyLoadMixin):
         response = self.connection.put(
             self.UPDATE_DOCUMENT_PATH.format(self.id),
             data=self.body,
-            **kwargs
-        )
+            **kwargs)
 
         # update revision of the document
         if response.status in [200, 201, 202]:
             self._rev = response.get("_rev")
-            return ResponseProxy(response, self)
+            return self
 
-        return ResponseProxy(response, None)
+        raise DocuemntUpdateError(
+            response.get("errorMessage", "Unknown error"))
 
     def delete(self):
         """
@@ -382,6 +380,6 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self._id = None
             self._rev = None
             self._body = None
-            return ResponseProxy(response, True)
+            return True
 
-        return ResponseProxy(response, False)
+        return False

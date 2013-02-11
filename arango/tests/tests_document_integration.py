@@ -2,7 +2,7 @@ import logging
 import os
 
 from nose.tools import assert_equal, assert_true, \
-                       assert_not_equal
+    assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -109,10 +109,9 @@ class TestsDocument(TestsIntegration):
 
         assert_equal(
             dict(
-                [(key, val) for key, val in \
-                    c.test.documents().first.body.iteritems() \
-                        if key in ["name", "position"]
-                ]
+                [(key, val) for key, val in
+                    c.test.documents().first.body.iteritems()
+                    if key in ["name", "position"]]
             ),
             {
                 "name": "John",
@@ -126,14 +125,16 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc = c.test.documents.create([1])
+        doc = c.test.documents.create({"data": 1})
+        last = c.test.documents().first.body
 
-        doc.body = [2]
+        doc.body = {"data": 2}
         doc.save()
+        assert_not_equal(doc, None)
 
         assert_equal(
             c.test.documents().first.body,
-            [2]
+            {"data": 2}
         )
 
     def test_list_of_documents(self):

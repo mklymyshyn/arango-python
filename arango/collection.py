@@ -1,6 +1,5 @@
 import logging
 
-from .core import ResponseProxy
 from .document import Documents
 from .edge import Edges
 from .index import Index
@@ -25,13 +24,11 @@ class Collections(object):
 
     def __call__(self, *args, **kwargs):
         """Return list of collections within current database"""
-        response = self.connection.get(
-            self.COLLECTIONS_LIST_URL
-        )
+        response = self.connection.get(self.COLLECTIONS_LIST_URL)
 
         names = [c.get("name") for c in response.get("collections", [])]
 
-        return ResponseProxy(response, names)
+        return names
 
     def __getattr__(self, name):
         """Lazy init of collection"""
@@ -101,12 +98,14 @@ class Collection(object):
     INFO_ALLOWED_RESOURCES = ["count", "figures"]
 
     def __init__(self, connection=None, name=None, id=None,
-                 createCollection=True):
+                 createCollection=True, response=None):
         self.connection = connection
         self.name = name
-        self._id = id
+        self.id = id
+        self.response = response
 
         self.createCollection = createCollection
+        self.state_fields = ("connection", "name", "id", "createCollector")
 
         self._documents = None
         self._edges = None
@@ -114,6 +113,9 @@ class Collection(object):
 
     def __repr__(self):
         return "<Collection '{0}' for {1}>".format(self.name, self.connection)
+
+    def __eq__(self, obj):
+        return obj.name == obj.name
 
     @property
     def cid(self):
@@ -178,14 +180,14 @@ class Collection(object):
         """
         Get information about collection.
         Information returns **AS IS** as
-        raw ``Response``
+        raw ``Response`` data
         """
         if resource not in self.INFO_ALLOWED_RESOURCES:
             resource = ""
 
-        return ResponseProxy(self.connection.get(
+        return self.connection.get(
             self.COLLECTION_DETAILS_PATH.format(self.name, resource)
-        ))
+        ).data
 
     def create(self, waitForSync=False):
         """
@@ -195,16 +197,14 @@ class Collection(object):
         """
         response = self.connection.post(
             self.CREATE_COLLECTION_PATH,
-            data=dict(
-                waitForSync=waitForSync,
-                name=self.name
-            )
-        )
+            data={"waitForSync": waitForSync,
+                  "name": self.name})
 
         if response.status == 200:
-            return ResponseProxy(response, result=self)
+            # TODO: update ID/revision for this collection
+            return self
 
-        return ResponseProxy(response)
+        return None
 
     def count(self):
         """
@@ -250,9 +250,9 @@ class Collection(object):
         )
 
         if response.status == 200:
-            return ResponseProxy(response, True)
+            return True
 
-        return ResponseProxy(response, False)
+        return False
 
     def rename(self, name=None):
         """
@@ -296,21 +296,19 @@ class Collection(object):
         """
         if name is None or name == "":
             raise InvalidCollectionId(
-                "Please, provide correct collection name"
-            )
+                "Please, provide correct collection name")
 
-        response = self.connection.put(
+        response = self.connection.post(
             self.RENAME_COLLECTION_PATH.format(self.name),
-            data=dict(name=name)
-        )
+            data={"name": name})
 
         if not response.is_error:
             # pass new name to connection
             # change current id of the collection
             self.connection.collection.rename_collection(self, name)
-            return ResponseProxy(response, True)
+            return True
 
-        return ResponseProxy(response, False)
+        return False
 
     def properties(self, **props):
         """
@@ -323,17 +321,23 @@ class Collection(object):
         Otherwise method will set or update properties
         using values from ``**props``
         """
-        action = "get" if props == {} else "put"
+        url = self.PROPERTIES_COLLECTION_PATH.format(self.name)
 
-        return ResponseProxy(getattr(self.connection, action)(
-            self.PROPERTIES_COLLECTION_PATH.format(self.name),
-            data=props
-        ))
+        if not props:
+            return self.connection.get(url).data
+
+        # update fields which should be updated,
+        # keep old fields as is
+        origin = self.properties()
+
+        if isinstance(origin, dict):
+            origin.update(props)
+
+        return self.connection.put(url, data=origin).data
 
     def truncate(self):
         """
         Truncate current **Collection**
         """
-        return ResponseProxy(self.connection.put(
-            self.TRUNCATE_COLLECTION_PATH.format(self.name)
-        ))
+        return self.connection.put(
+            self.TRUNCATE_COLLECTION_PATH.format(self.name))

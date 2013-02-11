@@ -6,7 +6,7 @@ from .tests_base import TestsBase
 
 from arango.utils import json
 from arango.exceptions import EmptyFields, WrongIndexType
-
+from arango.clients import Client
 
 __all__ = ("TestIndex",)
 
@@ -14,6 +14,7 @@ __all__ = ("TestIndex",)
 class TestIndex(TestsBase):
     def setUp(self):
         super(TestIndex, self).setUp()
+
         self.c = self.conn.collection.test
 
     def delete_response_mock(self):
@@ -30,27 +31,27 @@ class TestIndex(TestsBase):
         )
 
     def list_response_mock(self):
+        self.list_ids = {
+            "0": {
+                "fields": [
+                    "_id"
+                ],
+                "id": 0,
+                "type": "primary"
+            }
+        }
+
         data = {
             "code": 200,
             "indexes": [
                 {
-                    "fields": [
-                       "_id"
-                    ],
+                    "fields": ["_id"],
                     "id": 0,
                     "type": "primary"
                 }
             ],
             "error": False,
-            "identifiers": {
-                "0": {
-                    "fields": [
-                        "_id"
-                    ],
-                    "id": 0,
-                    "type": "primary"
-                }
-            }
+            "identifiers": self.list_ids
         }
 
         return self.response_mock(
@@ -60,7 +61,7 @@ class TestIndex(TestsBase):
         )
 
     def create_response_mock(self, body=None):
-        body = body if body != None else {}
+        body = body if body is not None else {}
         defaults = {
             "code": 201,
             "geoJson": False,
@@ -89,13 +90,14 @@ class TestIndex(TestsBase):
             self.c.index.CREATE.format(self.c.cid)
         )
 
-        response = self.c.index.create(
+        index = self.c.index.create(
             ["name"],
             index_type=self.c.index.HASH,
             unique=False
         )
 
-        assert_equal(response.url, url)
+        assert_equal(index, None)
+        assert_equal(Client.post.call_args[0][0], url)
 
     @raises(WrongIndexType)
     def test_create_wrong_type(self):
@@ -118,38 +120,24 @@ class TestIndex(TestsBase):
         )
 
     def test_list(self):
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.index.INDEXES.format(self.c.cid)
-        )
 
         patcher = self.list_response_mock()
         patcher.start()
         ids = self.c.index()
         patcher.stop()
 
-        assert_equal(
-            self.c.index.response.url,
-            url
-        )
-
-        assert_equal(
-            ids,
-            self.c.index.response.get("identifiers")
-        )
+        assert_equal(ids, self.list_ids)
 
     def test_delete(self):
         url = "{0}{1}".format(
             self.conn.url,
-            self.c.index.DELETE.format(self.c.cid, "1")
-        )
+            self.c.index.DELETE.format(self.c.cid, "1"))
 
         is_deleted = self.c.index.delete("1")
 
         assert_equal(
-            self.c.index.response.url,
-            url
-        )
+            Client.delete.call_args[0][0],
+            url)
 
         assert_false(is_deleted)
 
@@ -168,9 +156,5 @@ class TestIndex(TestsBase):
             self.c.index.READ.format(self.c.cid, "1")
         )
 
-        response = self.c.index.get(1)
-
-        assert_equal(
-            url,
-            response.url
-        )
+        self.c.index.get(1)
+        assert_equal(url, Client.get.call_args[0][0])

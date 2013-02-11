@@ -1,15 +1,13 @@
 
 from tests_base import TestsBase
 
-from nose.tools import assert_equal, assert_false, assert_true, raises
-from mock import Mock
+from nose.tools import assert_equal, assert_true, raises
 
-from arango.core import Response
+from arango.clients import Client
 from arango.collection import Collection, Collections
-from arango.document import Documents
 from arango.utils import json
 from arango.exceptions import CollectionIdAlreadyExist, InvalidCollectionId, \
-                                InvalidCollection
+    InvalidCollection
 
 
 class TestCollectionProxy(TestsBase):
@@ -57,116 +55,92 @@ class TestCollection(TestsBase):
         assert_equal(self.c.cid, "test")
 
     def test_create(self):
-        created = self.c.create()
+        self.c.create()
         url = "{0}{1}".format(
             self.conn.url,
-            self.c.CREATE_COLLECTION_PATH
-        )
+            self.c.CREATE_COLLECTION_PATH)
 
         test_data = {"name": "test", "waitForSync": False}
         test_args = {"data": json.dumps(test_data)}
 
-        assert_equal(created.response.url, url)
-        assert_equal(created.response.args, test_args)
+        assert_true(Client.post.called)
+        assert_equal(Client.post.call_args[0][0], url)
+        assert_equal(Client.post.call_args[1], test_args)
 
     def test_load(self):
-        response = self.c.load()
+        self.c.load()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.LOAD_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(response.url, url)
+        assert_equal(Client.put.call_args[0][0], url)
 
     def test_unload(self):
-        response = self.c.unload()
+        self.c.unload()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.UNLOAD_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(response.url, url)
+        assert_equal(Client.put.call_args[0][0], url)
 
     def test_delete(self):
-        deleted = self.c.delete()
+        self.c.delete()
         url = "{0}{1}".format(
             self.conn.url,
             self.c.DELETE_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(deleted.response.url, url)
-        assert_equal(deleted, False)
+        assert_equal(Client.delete.call_args[0][0], url)
 
     def test_truncate(self):
-        response = self.c.truncate()
+        self.c.truncate()
 
         url = "{0}{1}".format(
             self.conn.url,
             self.c.TRUNCATE_COLLECTION_PATH.format(self.c.name)
         )
 
-        # this workaround in case resultset *is* None
-        # proxy will call ``response`` attributes directly
-        assert_equal(response.url, url)
+        assert_equal(Client.put.call_args[0][0], url)
 
     def test_info(self):
         assert_equal(
             self.c.info(resource="wrong"),
-            self.c.info()
-        )
+            self.c.info())
 
     def test_properties(self):
-        response = self.c.properties(
-            waitForSync=True
-        )
+        self.c.properties(waitForSync=True)
 
         url = "{0}{1}".format(
             self.conn.url,
             self.c.PROPERTIES_COLLECTION_PATH.format(self.c.name)
         )
 
-        assert_equal(response.url, url)
+        assert_equal(Client.put.call_args[0][0], url)
 
         test_data = {"waitForSync": True}
         test_args = {"data": json.dumps(test_data)}
 
-        response = self.c.properties(waitForSync=True)
-        assert_equal(response.url, url)
-        assert_equal(response.args, test_args)
+        self.c.properties(waitForSync=True)
+        assert_equal(Client.put.call_args[0][0], url)
+        assert_equal(Client.put.call_args[1], test_args)
 
-        response = self.c.properties()
-        assert_equal(response.args, {})
+        self.c.properties()
+        assert_equal(Client.get.call_args[1], {})
 
     def test_rename(self):
         test_data = {"name": "test1"}
-        test_args = {"data": test_data}
+        test_args = {"data": json.dumps(test_data)}
 
         url = "{0}{1}".format(
             self.conn.url,
-            self.c.RENAME_COLLECTION_PATH.format(self.c.name)
-        )
+            self.c.RENAME_COLLECTION_PATH.format(self.c.name))
 
-        mock = Mock()
+        self.c.rename(name="test1")
 
-        prev_c = self.c.connection.put
-        self.c.connection.put = mock
-
-        mock(url, test_args).is_error = False
-
-        renamed = self.c.rename(name="test1")
-        assert_true(renamed)
-
-        assert_equal(renamed.response.url, mock().url)
-
-        assert_equal(self.c.name, "test1")
-        assert_equal(self.c.cid, "test1")
-
-        assert_equal(self.c, self.conn.collection.test1)
-        assert_false("test" in self.conn._collection.collections)
-
-        self.c.rename(name="test")
-
-        self.c.connection.put = prev_c
+        assert_equal(Client.post.call_args[0][0], url)
+        assert_equal(Client.post.call_args[1], test_args)
 
     def test_rename_manual_collection(self):
         c = Collection(connection=self.c.connection, name="manual")

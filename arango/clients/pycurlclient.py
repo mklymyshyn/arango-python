@@ -5,6 +5,7 @@ from .base import RequestsBase
 
 __all__ = ("PyCurlClient",)
 
+CONTINUE_HEADER = "HTTP/1.1 100 (Continue)"
 
 def performer(func):
     """
@@ -22,10 +23,15 @@ class PyCurlClient(RequestsBase):
     """
     PyCURL-based HTTP client
     """
+    DEBUG = False
+
     @classmethod
     def client(cls, url):
         client = pycurl.Curl()
         buf = StringIO.StringIO()
+
+        if cls.DEBUG:
+            client.setopt(pycurl.VERBOSE, True)
 
         client.setopt(pycurl.URL, url)
         client.setopt(pycurl.HEADER, 1)
@@ -43,7 +49,12 @@ class PyCurlClient(RequestsBase):
 
     @classmethod
     def parse_response(cls, buf):
-        headers, body = buf.getvalue().split("\r\n\r\n", 1)
+        response = buf.getvalue()
+
+        if CONTINUE_HEADER in response:
+            response = response.split("\r\n\r\n", 1)[-1]
+
+        headers, body = response.split("\r\n\r\n", 1)
         status, heads = headers.split("\r\n", 1)
 
         # NB: mimetools.Message too slow
@@ -80,9 +91,12 @@ class PyCurlClient(RequestsBase):
     @classmethod
     @performer
     def put(cls, url, data=None):
+        content = StringIO.StringIO(data)
         client, buf = cls.client(url)
 
         client.setopt(pycurl.PUT, True)
-        client.setopt(pycurl.POSTFIELDS, data or "")
+        client.setopt(pycurl.UPLOAD, True)
+        client.setopt(pycurl.READFUNCTION, content.read)
+        client.setopt(pycurl.INFILESIZE, len(data))
 
         return client, buf

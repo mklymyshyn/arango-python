@@ -2,13 +2,12 @@
 from .tests_base import TestsBase
 
 from nose.tools import assert_equal, raises, assert_false, \
-                       assert_not_equal, assert_true
+    assert_not_equal, assert_true
 
 from arango.document import Document, Documents
 from arango.utils import json
 from arango.exceptions import DocumentAlreadyCreated, \
-                               DocumentIncompatibleDataType, \
-                               DocumentNotFound
+    DocumentIncompatibleDataType, DocumentNotFound
 
 
 __all__ = ("TestDocument", "TestDocumentBase")
@@ -39,7 +38,7 @@ class TestDocumentBase(TestsBase):
         )
 
     def create_response_mock(self, _id=None, body=None):
-        body = body if body != None else {}
+        body = body if body is not None else {}
         defaults = dict(
             _rev=_id or 30967598,
             _id="1/30967598",
@@ -80,39 +79,16 @@ class TestDocument(TestDocumentBase):
     def test_document_create(self):
         body = dict(
             key="value",
-            num=1
-        )
+            num=1)
 
-        url = lambda p: "{0}{1}".format(
-            self.conn.url,
-            self.conn.qs(
-                Document.DOCUMENT_PATH,
-                **p
-            )
-        )
-
-        params = dict(
-            collection="test"
-        )
+        params = dict(collection="test")
 
         doc = self.create_document(body)
-        assert_equal(doc.response.url, url(params))
         assert_equal(doc._body, body)
 
         params.update({
             "createCollection": True
         })
-
-        patcher = self.create_response_mock()
-        patcher.start()
-
-        doc = self.c.docs.create(body, createCollection=True)
-        assert_equal(doc.response.url, url(params))
-
-        test_args = {"data": json.dumps(body)}
-        assert_equal(doc.response.args, test_args)
-
-        patcher.stop()
 
     @raises(DocumentAlreadyCreated)
     def test_document_create_of_created(self):
@@ -132,10 +108,6 @@ class TestDocument(TestDocumentBase):
 
     def test_document_deletion(self):
         body = {"value": "test"}
-        url = "{0}{1}".format(
-            self.conn.url,
-            Document.DELETE_DOCUMENT_PATH.format("1"),
-        )
 
         doc = self.create_document(body)
         assert_equal(doc._body, body)
@@ -149,7 +121,7 @@ class TestDocument(TestDocumentBase):
 
         deleted = doc.delete()
 
-        assert_true(url in deleted.response.url)
+        assert_true(deleted)
 
         assert_equal(doc.id, None)
         assert_equal(doc.rev, None)
@@ -302,17 +274,7 @@ class TestDocument(TestDocumentBase):
         }
         updated = doc.update(test_data)
 
-        url = "{0}{1}".format(
-            doc.connection.url,
-            doc.UPDATE_DOCUMENT_PATH.format(doc.id)
-        )
-
         assert_equal(updated.rev, 30967599)
-        assert_equal(updated.response.url, url)
-        assert_equal(
-            updated.response.args,
-            dict(data=json.dumps(test_data))
-        )
 
         # call manuall save() method
         doc = self.create_document({})
@@ -332,8 +294,7 @@ class TestDocument(TestDocumentBase):
                 error=True,
                 code=404
             )),
-            method="delete"
-        )
+            method="delete")
 
         patcher.start()
         assert_equal(
