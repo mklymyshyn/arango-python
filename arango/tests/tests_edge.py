@@ -4,8 +4,7 @@ from mock import Mock, patch
 from nose.tools import assert_equal, assert_true, raises, \
     assert_not_equal
 
-from arango.clients import Client
-from arango.edge import Edge, Edges
+from arango.edge import Edges
 from arango.utils import json
 from arango.exceptions import EdgeAlreadyCreated
 
