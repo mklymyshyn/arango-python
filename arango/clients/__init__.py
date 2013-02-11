@@ -13,6 +13,5 @@ try:
     from .pycurlclient import PyCurlClient
     Client = PyCurlClient
 except Exception, e:
-    print e
     logger.warning(
         u"Sorry, can't import PyCurlClient. Reason: %s", unicode(e))
