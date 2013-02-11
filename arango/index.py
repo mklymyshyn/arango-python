@@ -104,6 +104,6 @@ class Index(object):
         response = self.connection.get(
             self.READ.format(self.collection.cid, field_id))
 
-        self.indexes[response.data["id"]] = response.data
+        self.indexes[field_id] = response.data
 
         return self.indexes[field_id]
