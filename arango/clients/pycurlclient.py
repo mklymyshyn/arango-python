@@ -91,6 +91,9 @@ class PyCurlClient(RequestsBase):
     @classmethod
     @performer
     def put(cls, url, data=None):
+        if data is None:
+            data = ""
+
         content = StringIO.StringIO(data)
         client, buf = cls.client(url)
 

@@ -126,16 +126,18 @@ class TestsDocument(TestsIntegration):
         c.test.create()
 
         doc = c.test.documents.create({"data": 1})
-        last = c.test.documents().first.body
 
-        doc.body = {"data": 2}
+        data = {"data": 2}
+        doc.body = data
         doc.save()
         assert_not_equal(doc, None)
 
+        inter = list(
+            set(c.test.documents().first.body).intersection(
+                set(data)))
         assert_equal(
-            c.test.documents().first.body,
-            {"data": 2}
-        )
+            data[inter[0]],
+            c.test.documents().first.body[inter[0]])
 
     def test_list_of_documents(self):
         c = self.conn.collection

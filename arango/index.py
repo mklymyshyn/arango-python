@@ -21,6 +21,7 @@ class Index(object):
     def __init__(self, collection=None):
         self.connection = collection.connection
         self.collection = collection
+        self.indexes = {}
 
     def __call__(self):
         """
@@ -74,7 +75,8 @@ class Index(object):
                 "type": index_type,
                 "unique": unique})
 
-        if response.status in [200]:
+        if response.status in [200, 201]:
+            self.indexes[response.data["id"]] = response.data
             return self
 
         return None
@@ -92,11 +94,16 @@ class Index(object):
 
         return False
 
-    def get(self, field_id):
+    def get(self, field_id, force_read=False):
         """
         Get index by ``id``
         """
+        if force_read is False and field_id in self.indexes:
+            return self.indexes[field_id]
+
         response = self.connection.get(
             self.READ.format(self.collection.cid, field_id))
 
-        return self
+        self.indexes[response.data["id"]] = response.data
+
+        return self.indexes[field_id]
