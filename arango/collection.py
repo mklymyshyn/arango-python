@@ -86,6 +86,8 @@ class Collections(object):
 class Collection(object):
     """Represent single collection with certain name"""
 
+    TYPE_DOCUMENT, TYPE_EDGE = 2, 3
+
     COLLECTION_DETAILS_PATH = "/_api/collection/{0}/{1}"
     CREATE_COLLECTION_PATH = "/_api/collection"
     DELETE_COLLECTION_PATH = "/_api/collection/{0}"
@@ -189,16 +191,19 @@ class Collection(object):
             self.COLLECTION_DETAILS_PATH.format(self.name, resource)
         ).data
 
-    def create(self, waitForSync=False):
+    def create(self, waitForSync=False, **kwargs):
         """
         Create new **Collection**. You can specify
         ``waitForSync`` argument (boolean) to wait until
         collection will be synced to disk
         """
+        params = {"waitForSync": waitForSync,
+                  "name": self.name}
+        params.update(kwargs)
+
         response = self.connection.post(
             self.CREATE_COLLECTION_PATH,
-            data={"waitForSync": waitForSync,
-                  "name": self.name})
+            data=params)
 
         if response.status == 200:
             # TODO: update ID/revision for this collection

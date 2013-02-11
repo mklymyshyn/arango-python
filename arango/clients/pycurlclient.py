@@ -24,6 +24,7 @@ class PyCurlClient(RequestsBase):
     PyCURL-based HTTP client
     """
     DEBUG = False
+    IPRESOLVE = pycurl.IPRESOLVE_V4
 
     @classmethod
     def client(cls, url):
@@ -33,6 +34,9 @@ class PyCurlClient(RequestsBase):
         if cls.DEBUG:
             client.setopt(pycurl.VERBOSE, True)
 
+        # TODO: do not attempt to connect via IPv6
+        # XXX: NEED TO BE CONFIGURABLE!!!
+        client.setopt(pycurl.IPRESOLVE, cls.IPRESOLVE)
         client.setopt(pycurl.URL, url)
         client.setopt(pycurl.HEADER, 1)
         client.setopt(pycurl.NOSIGNAL, 1)

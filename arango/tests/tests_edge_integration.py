@@ -3,6 +3,8 @@ import os
 
 from nose.tools import assert_equal, assert_not_equal
 
+from arango.collection import Collection
+
 from .tests_integraion_base import TestsIntegration
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ class TestsEdge(TestsIntegration):
         super(TestsEdge, self).setUp()
 
         self.c = self.conn.collection
-        self.c.test.create()
+        self.c.test.create(type=Collection.TYPE_EDGE)
 
         body = {"key": 1}
 

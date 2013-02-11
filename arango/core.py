@@ -90,8 +90,7 @@ class Connection(object):
             return Response(
                 url, req(url, **kw),
                 args=kw,
-                expect_raw=expect_raw
-            )
+                expect_raw=expect_raw)
 
         return requests_factory_wrapper
 

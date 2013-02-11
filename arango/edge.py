@@ -1,12 +1,11 @@
 import copy
 import logging
 
-from .mixins import ComparsionMixin, LazyLoadMixin
+from .mixins import ComparsionMixin
 from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
-                        EdgeIncompatibleDataType, \
-                        DocumentIncompatibleDataType, \
-                        EdgeNotFound
+    EdgeIncompatibleDataType, \
+    DocumentIncompatibleDataType
 from .utils import proxied_document_ref
 
 
@@ -48,7 +47,7 @@ class Edges(object):
     def prepare_resultset(self, rs, args=None, kwargs=None):
         """This method should be called to prepare results"""
 
-        kwargs = kwargs if kwargs != None else {}
+        kwargs = kwargs if kwargs is not None else {}
 
         if not args or not proxied_document_ref(args[0]):
             raise DocumentIncompatibleDataType(
@@ -73,7 +72,7 @@ class Edges(object):
         rs.response = response
         rs.count = len(edges)
 
-        if rs._limit != None:
+        if rs._limit is not None:
             edges = edges[:rs._limit]
 
         rs.data = edges
@@ -143,7 +142,7 @@ class Edge(ComparsionMixin):
         self._from_document = None
         self._to_document = None
 
-        if _id != None:
+        if _id is not None:
             self._body = kwargs
 
     @property
@@ -204,8 +203,8 @@ class Edge(ComparsionMixin):
         if super(Edge, self).__cmp__(other) != 0:
             return -1
 
-        if self._from == other._from and \
-                self._to == other._to:
+        if (self._from == other._from and
+                self._to == other._to):
             return 0
 
         return -1
@@ -232,11 +231,6 @@ class Edge(ComparsionMixin):
         """This property return Edge content"""
         return self.get()
 
-    @property
-    def response(self):
-        """Property to get latest response"""
-        return self._response
-
     def get(self, name=None, default=None):
         """
         This method very similar to ``dict``'s ``get`` method.
@@ -253,7 +247,7 @@ class Edge(ComparsionMixin):
         if not self._body:
             return default
 
-        if name == None:
+        if name is None:
             return self._body
 
         return self._body.get(name, default)
@@ -284,7 +278,7 @@ class Edge(ComparsionMixin):
         Return edge instance (``self``) or ``None``
         """
 
-        if self.id != None:
+        if self.id is not None:
             raise EdgeAlreadyCreated(
                 "This edge already created with id {0}".format(self.id)
             )
@@ -311,10 +305,7 @@ class Edge(ComparsionMixin):
                 self.EDGE_PATH,
                 **params
             ),
-            data=body
-        )
-
-        self._response = response
+            data=body)
 
         # define document ID
         if response.status in [201, 202]:
@@ -366,16 +357,14 @@ class Edge(ComparsionMixin):
         self._from = from_doc_id
         self._to = to_doc_id
 
-        if not issubclass(type(body), dict) and body != None:
+        if not issubclass(type(body), dict) and body is not None:
             raise EdgeIncompatibleDataType(
-                "Body should be None (empty) or instance or "\
-                "subclass of `dict` data type"
-            )
+                "Body should be None (empty) or instance or "
+                "subclass of `dict` data type")
 
-        if body != None:
+        if body is not None:
             self.body.update(body)
 
-        if save == True:
             return self.save(**kwargs)
 
         return True
