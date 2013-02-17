@@ -15,13 +15,13 @@ class ComparsionMixin(object):
         if not issubclass(type(other), self.__class__):
             return -1
 
-        if self.body != None and other.body != None and \
-                set(self.body).symmetric_difference(other.body) not in \
-                    [self.IGNORE_KEYS, set([])]:
+        if (self.body is not None and other.body is not None and
+            set(self.body).symmetric_difference(other.body) not in
+                [self.IGNORE_KEYS, set([])]):
             return -1
 
         # compare bodies but ignore sys keys
-        if self.body != None and other.body != None:
+        if (self.body is not None and other.body is not None):
             for key in other.body.keys():
                 if key in self.IGNORE_KEYS:
                     continue
@@ -29,8 +29,8 @@ class ComparsionMixin(object):
                 if self.body.get(key, None) != other.body.get(key, None):
                     return -1
 
-        if self._id != None and self._rev != None and \
-            self._id != other._id or self._rev != other._rev:
+        if (self._id is not None and self._rev is not None and
+                self._id != other._id or str(self._rev) != str(other._rev)):
             return -1
 
         return 0
@@ -59,6 +59,6 @@ class LazyLoadMixin(object):
         return object.__getattribute__(self, name)
 
     def _handle_lazy(self):
-        if self._lazy_loaded == False:
+        if self._lazy_loaded is False:
             self._lazy_loaded = True
             self.lazy_loader()

@@ -2,7 +2,7 @@ import logging
 import os
 
 from nose.tools import assert_equal, assert_true, \
-                       assert_not_equal
+    assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -71,15 +71,15 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc1 = c.test.documents.create([1])
-        doc2 = c.test.documents.create([2])
+        doc1 = c.test.documents.create({"a": 1})
+        doc2 = c.test.documents.create({"a": 2})
 
-        prev_count = c.test.documents.count
+        prev_count = int(c.test.documents.count)
 
         # delete by document itself
         c.test.documents.delete(doc1)
 
-        assert_equal(c.test.documents.count, prev_count - 1)
+        assert_equal(int(c.test.documents.count), prev_count - 1)
 
         # delete by reference only
         c.test.documents.delete(doc2.id)
@@ -92,14 +92,14 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc = c.test.documents.create([1])
+        doc = c.test.documents.create({1: 1})
 
-        c.test.documents.update(doc, [2])
+        c.test.documents.update(doc, {2: 2})
 
         assert_equal(
-            c.test.documents().first.body,
-            [1, 2]
-        )
+            c.test.documents().first.body["1"], 1)
+        assert_equal(
+            c.test.documents().first.body["2"], 2)
 
         c.test.documents.delete(doc)
 
@@ -109,10 +109,9 @@ class TestsDocument(TestsIntegration):
 
         assert_equal(
             dict(
-                [(key, val) for key, val in \
-                    c.test.documents().first.body.iteritems() \
-                        if key in ["name", "position"]
-                ]
+                [(key, val) for key, val in
+                    c.test.documents().first.body.iteritems()
+                    if key in ["name", "position"]]
             ),
             {
                 "name": "John",
@@ -126,15 +125,19 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc = c.test.documents.create([1])
+        doc = c.test.documents.create({"data": 1})
 
-        doc.body = [2]
+        data = {"data": 2}
+        doc.body = data
         doc.save()
+        assert_not_equal(doc, None)
 
+        inter = list(
+            set(c.test.documents().first.body).intersection(
+                set(data)))
         assert_equal(
-            c.test.documents().first.body,
-            [2]
-        )
+            data[inter[0]],
+            c.test.documents().first.body[inter[0]])
 
     def test_list_of_documents(self):
         c = self.conn.collection

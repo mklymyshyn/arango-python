@@ -1,7 +1,6 @@
-import requests
-
 from nose.tools import assert_equal, assert_not_equal, \
-                        assert_true, assert_false, raises
+    assert_true, assert_false, raises
+
 
 from mock import Mock
 
@@ -9,6 +8,7 @@ from .tests_base import TestsBase
 
 from arango import create
 from arango.core import Connection, Response, Resultset
+from arango.clients import Client
 
 
 class TestConnectionInit(TestsBase):
@@ -72,7 +72,7 @@ class TestConnectionRequestsFactory(TestsBase):
                 getattr(conn, method)("/"),
                 Response(
                     url,
-                    getattr(requests, method)(url)
+                    getattr(Client, method)(url)
                 )
             )
 
@@ -97,9 +97,8 @@ class TestResponse(TestsBase):
         assert_true(response.is_error)
 
         assert_true(
-            "Can't parse response from ArangoDB: " in \
-            response.message
-        )
+            "Can't parse response from ArangoDB: " in
+            response.message)
 
     def test_repr(self):
         response = self.response()
@@ -146,7 +145,7 @@ class TestResultset(TestsBase):
 
             data = self.data[rs._offset:]
 
-            if rs._limit != None:
+            if rs._limit is not None:
                 data = self.data[:rs._limit]
 
             rs.data = data
@@ -155,6 +154,7 @@ class TestResultset(TestsBase):
         self.Base.prepare_resultset = prepare_resultset_mock
 
         self.rs = Resultset(base=self.Base)
+        self.rs.base._cursor = lambda *a, **k: range(3)
 
     def tearDown(self):
         pass
@@ -177,12 +177,6 @@ class TestResultset(TestsBase):
         assert_equal(
             [item for item in self.rs],
             self.data
-        )
-
-    def test_last_shortcut(self):
-        assert_equal(
-            self.rs.last,
-            self.data[-1]
         )
 
     def test_first_shortcut(self):

@@ -1,11 +1,12 @@
 import logging
-import requests
 import urllib
 
-from .collection import Collections
 from .utils import json
+from .clients import Client
+from .cursor import Cursor
 
-__all__ = ("Connection", "Response", "Resultset")
+__all__ = ("Connection", "Response",
+           "Resultset")
 
 
 logger = logging.getLogger(__name__)
@@ -25,16 +26,17 @@ class Connection(object):
         "delete"
     )
 
-    def __init__(self,
-            host="localhost",
-            port=8529,
-            is_https=False,
-            **kwargs):
-
+    def __init__(self, host="localhost",
+                 port=8529, is_https=False,
+                 client=None, **kwargs):
+        """
+         - ``client`` - this param provide ability
+           to customize HTTP client
+        """
         self.host = host
         self.port = port
         self.is_https = is_https
-
+        self.client = client or Client
         self.additional_args = kwargs
         self._collection = None
 
@@ -53,10 +55,10 @@ class Connection(object):
         )
 
     def requests_factory(self, method="get"):
-        """Factory of requests wrapped around requests library
+        """Factory of requests wrapped around HTTP library
         and pass custom arguments provided by init of connection"""
 
-        req = getattr(requests, method)
+        req = getattr(self.client, method)
 
         def requests_factory_wrapper(path, **kwargs):
             """To avoid auto JSON encoding of `data` keywords
@@ -70,7 +72,7 @@ class Connection(object):
                 ))
 
             # Py 2.7 only, yeah!
-            kw = dict((k, v) for k, v in self.additional_args)
+            kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
 
             # NB: don't pass `data` argument in case
@@ -81,16 +83,15 @@ class Connection(object):
             expect_raw = kw.pop("_expect_raw", False)
 
             # Encode automatically data for POST/PUT
-            if "data" in kw and \
-                    isinstance(kw.get("data"), (dict, list)) \
-                    and not kw.pop("rawData", False):
+            if ("data" in kw and
+                isinstance(kw.get("data"), (dict, list)) and
+                    not kw.pop("rawData", False)):
                 kw["data"] = json.dumps(kw.get("data"))
 
             return Response(
                 url, req(url, **kw),
                 args=kw,
-                expect_raw=expect_raw
-            )
+                expect_raw=expect_raw)
 
         return requests_factory_wrapper
 
@@ -120,16 +121,28 @@ class Connection(object):
 
     @property
     def collection(self):
+        from .collection import Collections
+
         if not self._collection:
             self._collection = Collections(self)
 
         return self._collection
+
+    def query(self, *args, **kwargs):
+        """
+        Proceed query (AQL) to the Database
+        """
+        return Cursor(self, *args, **kwargs)
 
     def __repr__(self):
         return "<Connection to ArangoDB ({0})>".format(self.url)
 
 
 class Response(dict):
+    """
+    Representation of HTTP response with
+    additional fields to make response more readable.
+    """
     def __init__(self, url, response, args=None, expect_raw=False):
         self.url = url
         self.response = response
@@ -139,17 +152,17 @@ class Response(dict):
         self._data = None
 
         try:
-            if expect_raw == False:
-                self.update(dict((k, v) \
-                    for k, v in json.loads(response.text).iteritems()))
+            if expect_raw is False:
+                self.update({k: v
+                             for k, v in
+                             json.loads(response.text).iteritems()})
 
         except (TypeError, ValueError) as e:
             msg = "Can't parse response from ArangoDB:"\
                 " {0} (URL: {1}, Response: {2})".format(
                 str(e),
                 url,
-                repr(response)
-            )
+                repr(response))
 
             logger.error(msg)
             self.status = 500
@@ -157,8 +170,12 @@ class Response(dict):
 
     @property
     def data(self):
-        if self._data == None:
-            self._data = json.loads(self.response.text)
+        if self._data is None:
+            try:
+                self._data = json.loads(self.response.text)
+            except TypeError:
+                self._data = {}
+
         return self._data
 
     @property
@@ -186,7 +203,7 @@ class Resultset(object):
 
         self.max_repr_items = 4
         self._response = None
-        self._count = 0
+        self._count = None
         self._data = None
 
     @property
@@ -199,14 +216,13 @@ class Resultset(object):
 
     def _prepare(self):
         """Prepare data"""
-        if not self.data:
+        if not self.data and hasattr(self.base, "prepare_resultset"):
             self.base.prepare_resultset(
                 self, args=self._args, kwargs=self._kwargs)
 
     @property
     def count(self):
-        self._prepare()
-        return self._count
+        return len(self)
 
     @count.setter
     def count(self, value):
@@ -240,14 +256,17 @@ class Resultset(object):
     @property
     def last(self):
         """Return last element from response"""
+        total = len(self.base._cursor(self))
         try:
-            return list(self)[-1]
+            return list(self.limit(1).offset(total - 1))[0]
         except IndexError:
             return None
 
     def __len__(self):
-        self._prepare()
-        return len(self.data)
+        if self._count is None:
+            self._count = len(self.base._cursor(self))
+
+        return self._count
 
     def __iter__(self):
         self._prepare()

@@ -2,9 +2,9 @@
 from mock import Mock, patch
 
 from nose.tools import assert_equal, assert_true, raises, \
-                       assert_not_equal
+    assert_not_equal
 
-from arango.edge import Edge, Edges
+from arango.edge import Edges, Edge
 from arango.utils import json
 from arango.exceptions import EdgeAlreadyCreated
 
@@ -34,7 +34,7 @@ class TestEdge(TestDocumentBase):
         )
 
     def create_edge_response_mock(self, body=None):
-        body = body if body != None else {}
+        body = body if body is not None else {}
         defaults = dict(
             _from="7848004/9289796",
             _to="7848004/9355332",
@@ -61,11 +61,11 @@ class TestEdge(TestDocumentBase):
         edge = self.c.edges.create(
             from_doc,
             to_doc,
-            body
-        )
+            body)
+
         patcher.stop()
 
-        return edge, edge.response
+        return edge
 
     def test_collection_shortcut(self):
         assert_equal(type(self.c.edges), Edges)
@@ -73,28 +73,12 @@ class TestEdge(TestDocumentBase):
     def test_edge_create(self):
         body = dict(
             key="value",
-            num=1
-        )
+            num=1)
 
         doc1 = self.create_document(123, body)
         doc2 = self.create_document(234, body)
 
-        url = lambda p: "{0}{1}".format(
-            self.conn.url,
-            self.conn.qs(
-                Edge.EDGE_PATH,
-                **p
-            )
-        )
-
-        params = {
-            "collection": "test",
-            "from": doc1.id,
-            "to": doc2.id
-        }
-
-        edge, response = self.create_edge(doc1, doc2, body)
-        assert_equal(response.url, url(params))
+        edge = self.create_edge(doc1, doc2, body)
 
         for k in body.keys():
             assert_true(k in edge._body)
@@ -102,7 +86,8 @@ class TestEdge(TestDocumentBase):
     @raises(EdgeAlreadyCreated)
     def test_edge_create_of_created(self):
         body = {"value": "test"}
-        edge = self.c.edges.create(None, None, body)
+
+        edge = Edge(self.c)
         edge._id = 1
         edge.create(None, None, body)
 
@@ -120,7 +105,7 @@ class TestEdge(TestDocumentBase):
         doc1 = self.create_document(123, body)
         doc2 = self.create_document(234, body)
 
-        edge, response = self.create_edge(doc1, doc2, body)
+        edge = self.create_edge(doc1, doc2, body)
 
         assert_equal(
             edge.get("array", default=None),
@@ -137,15 +122,11 @@ class TestEdge(TestDocumentBase):
 
     def test_edge_deletion(self):
         body = {"value": "test"}
-        url = "{0}{1}".format(
-            self.conn.url,
-            Edge.DELETE_EDGE_PATH.format("1"),
-        )
 
         doc1 = self.create_document(123, body)
         doc2 = self.create_document(234, body)
 
-        edge, response = self.create_edge(doc1, doc2, body)
+        edge = self.create_edge(doc1, doc2, body)
 
         patcher = self.delete_edge_response_mock()
         patcher.start()
@@ -155,7 +136,6 @@ class TestEdge(TestDocumentBase):
         edge._body = {}
 
         assert_true(edge.delete())
-        assert_equal(edge.response.url, url)
 
         assert_equal(edge.id, None)
         assert_equal(edge.rev, None)
@@ -170,8 +150,8 @@ class TestEdge(TestDocumentBase):
         doc1 = self.create_document(123, body)
         doc2 = self.create_document(234, body)
 
-        edge1, response = self.create_edge(doc1, doc2, body)
-        edge2, response = self.create_edge(doc1, doc2, body)
+        edge1 = self.create_edge(doc1, doc2, body)
+        edge2 = self.create_edge(doc1, doc2, body)
 
         mock_from = Mock()
         mock_to = Mock()

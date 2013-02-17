@@ -1,5 +1,8 @@
 import logging
 
+from .document import Document
+
+
 __all__ = ("Cursor",)
 
 logger = logging.getLogger(__name__)
@@ -8,7 +11,7 @@ logger = logging.getLogger(__name__)
 class Cursor(object):
     """API to work with Cursors in ArangoDB.
     I don't see a reason why it shouldn't be a
-    usual routine to work with AQL.
+    common routine to work with AQL.
 
     Quote from ArangoDB Wiki:
         Note: the server will also destroy abandoned
@@ -23,7 +26,8 @@ class Cursor(object):
     READ_NEXT_BATCH_PATH = "/_api/cursor/{0}"
 
     def __init__(self, connection, query,
-                 count=True, batchSize=None, bindVars=None):
+                 count=True, batchSize=None, bindVars=None,
+                 wrapper=Document.load):
         """
             ``query`` - contains the query string to be executed (mandatory)
             ``count`` - boolean flag that indicates whether the
@@ -40,13 +44,15 @@ class Cursor(object):
                             If this attribute is not set, a server-controlled
                             default value will be used.
             ``bindVars`` - key/value list of bind parameters (optional).
+            ``wrapper`` - by default it's ``Document.wrap``
+                          class, wrap result into
         """
         self.connection = connection
         self.query = query
 
         # boolean flag: show count in results or not
         self.count = count
-
+        self.wrapper = wrapper
         self.batchSize = batchSize
         self.bindVars = bindVars if \
             isinstance(bindVars, dict) else {}
@@ -65,7 +71,7 @@ class Cursor(object):
         self._dataset = []
 
         # total count of results, extracted from Database
-        self._count = None
+        self._count = 0
 
     def __iter__(self):
         return self
@@ -78,7 +84,8 @@ class Cursor(object):
         self._position += 1
 
         try:
-            return self._dataset.pop(0)
+            item = self._dataset.pop(0)
+            return self.wrapper(self.connection, item)
         except IndexError:
             if self._hasMore:
                 self.bulk()
@@ -107,8 +114,14 @@ class Cursor(object):
 
         # TODO: handle errors
         self._hasMore = response.get("hasMore", False)
-        self._count = response.get("count", None)
+        self._count = int(response.get("count", 0))
         self._dataset = response["result"] if "result" in response else []
 
+    def __len__(self):
+        if not self._cursor_id:
+            self.bulk()
+
+        return self._count
+
     def __repr__(self):
-        return "<ArangoDB Cursor Object: %s>" % self.query
+        return "<ArangoDB Cursor Object: {0}>".format(self.query)

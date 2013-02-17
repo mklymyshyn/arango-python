@@ -21,7 +21,7 @@ class Index(object):
     def __init__(self, collection=None):
         self.connection = collection.connection
         self.collection = collection
-        self._response = None
+        self.indexes = {}
 
     def __call__(self):
         """
@@ -35,18 +35,9 @@ class Index(object):
 
         """
         response = self.connection.get(
-            self.INDEXES.format(self.collection.cid)
-        )
+            self.INDEXES.format(self.collection.cid))
 
-        self._response = response
         return response.get("identifiers", {})
-
-    @property
-    def response(self):
-        """
-        Get latest response
-        """
-        return self._response
 
     def create(self, fields, index_type="hash", unique=False):
         """
@@ -65,7 +56,7 @@ class Index(object):
 
         if index_type not in self.INDEX_TYPES:
             raise WrongIndexType(
-                "The type you provided `{0}` is undefined. "\
+                "The type you provided `{0}` is undefined. "
                 "Possible values are: {1}".format(
                     repr(type),
                     ", ".join(self.INDEX_TYPES)
@@ -77,14 +68,18 @@ class Index(object):
                 "It's required to provide at least one field to index"
             )
 
-        return self.connection.post(
+        response = self.connection.post(
             self.CREATE.format(self.collection.cid),
-            data=dict(
-                fields=fields,
-                type=index_type,
-                unique=unique
-            )
-        )
+            data={
+                "fields": fields,
+                "type": index_type,
+                "unique": unique})
+
+        if response.status in [200, 201]:
+            self.indexes[response.data["id"]] = response.data
+            return self
+
+        return None
 
     def delete(self, field_id):
         """Return tuple of two values:
@@ -92,20 +87,23 @@ class Index(object):
             - original response
         """
         response = self.connection.delete(
-            self.DELETE.format(self.collection.cid, field_id)
-        )
-
-        self._response = response
+            self.DELETE.format(self.collection.cid, field_id))
 
         if response.get("code", 500) == 200:
             return True
 
         return False
 
-    def get(self, field_id):
+    def get(self, field_id, force_read=False):
         """
         Get index by ``id``
         """
-        return self.connection.get(
-            self.READ.format(self.collection.cid, field_id)
-        )
+        if force_read is False and field_id in self.indexes:
+            return self.indexes[field_id]
+
+        response = self.connection.get(
+            self.READ.format(self.collection.cid, field_id))
+
+        self.indexes[field_id] = response.data
+
+        return self.indexes[field_id]

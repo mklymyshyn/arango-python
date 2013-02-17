@@ -4,7 +4,8 @@ __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "DocumentIncompatibleDataType", "WrongIndexType",
            "EmptyFields", "EdgeAlreadyCreated",
            "DocumentNotFound", "EdgeNotYetCreated",
-           "EdgeIncompatibleDataType", "EdgeNotFound")
+           "EdgeIncompatibleDataType", "EdgeNotFound",
+           "DocuemntUpdateError")
 
 
 class InvalidCollection(Exception):
@@ -32,6 +33,10 @@ class DocumentIncompatibleDataType(Exception):
 
 class DocumentNotFound(Exception):
     """Raises in case Document not exist in database"""
+
+
+class DocuemntUpdateError(Exception):
+    """In case can't save document"""
 
 
 class WrongIndexType(Exception):

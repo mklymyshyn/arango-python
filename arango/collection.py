@@ -4,7 +4,7 @@ from .document import Documents
 from .edge import Edges
 from .index import Index
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
-                        InvalidCollection
+    InvalidCollection
 
 
 logger = logging.getLogger(__name__)
@@ -23,9 +23,7 @@ class Collections(object):
 
     def __call__(self, *args, **kwargs):
         """Return list of collections within current database"""
-        response = self.connection.get(
-            self.COLLECTIONS_LIST_URL
-        )
+        response = self.connection.get(self.COLLECTIONS_LIST_URL)
 
         names = [c.get("name") for c in response.get("collections", [])]
 
@@ -54,10 +52,10 @@ class Collections(object):
         Private method which should be used by ``Collection``
         instance itself.
         """
-        if collection == None or \
+        if collection is None or \
                 not issubclass(collection.__class__, Collection):
             raise InvalidCollection(
-                "Object '{0}' is not subclass of "\
+                "Object '{0}' is not subclass of "
                 "Collection or is None".format(repr(collection))
             )
 
@@ -81,6 +79,8 @@ class Collections(object):
 class Collection(object):
     """Represent single collection with certain name"""
 
+    TYPE_DOCUMENT, TYPE_EDGE = 2, 3
+
     COLLECTION_DETAILS_PATH = "/_api/collection/{0}/{1}"
     CREATE_COLLECTION_PATH = "/_api/collection"
     DELETE_COLLECTION_PATH = "/_api/collection/{0}"
@@ -93,20 +93,24 @@ class Collection(object):
     INFO_ALLOWED_RESOURCES = ["count", "figures"]
 
     def __init__(self, connection=None, name=None, id=None,
-            createCollection=True):
+                 createCollection=True, response=None):
         self.connection = connection
         self.name = name
-        self._id = id
+        self.id = id
+        self.response = response
 
         self.createCollection = createCollection
+        self.state_fields = ("connection", "name", "id", "createCollector")
 
         self._documents = None
         self._edges = None
         self._index = None
-        self._response = None
 
     def __repr__(self):
         return "<Collection '{0}' for {1}>".format(self.name, self.connection)
+
+    def __eq__(self, obj):
+        return obj.name == obj.name
 
     @property
     def cid(self):
@@ -132,7 +136,7 @@ class Collection(object):
 
         Technically return instance of :ref:`documents proxy` object
         """
-        if not self._documents:
+        if self._documents is None:
             self._documents = Documents(collection=self)
 
         return self._documents
@@ -155,17 +159,10 @@ class Collection(object):
               More about :term:`DocumentIncompatibleDataType`
 
         """
-        if self._edges == None:
+        if self._edges is None:
             self._edges = Edges(collection=self)
 
         return self._edges
-
-    @property
-    def response(self):
-        """
-        Get latest response
-        """
-        return self._response
 
     @property
     def docs(self):
@@ -178,32 +175,31 @@ class Collection(object):
         """
         Get information about collection.
         Information returns **AS IS** as
-        raw ``Response``
+        raw ``Response`` data
         """
         if resource not in self.INFO_ALLOWED_RESOURCES:
             resource = ""
 
         return self.connection.get(
             self.COLLECTION_DETAILS_PATH.format(self.name, resource)
-        )
+        ).data
 
-    def create(self, waitForSync=False):
+    def create(self, waitForSync=False, **kwargs):
         """
         Create new **Collection**. You can specify
         ``waitForSync`` argument (boolean) to wait until
         collection will be synced to disk
         """
+        params = {"waitForSync": waitForSync,
+                  "name": self.name}
+        params.update(kwargs)
+
         response = self.connection.post(
             self.CREATE_COLLECTION_PATH,
-            data=dict(
-                waitForSync=waitForSync,
-                name=self.name
-            )
-        )
-
-        self._response = response
+            data=params)
 
         if response.status == 200:
+            # TODO: update ID/revision for this collection
             return self
 
         return None
@@ -220,7 +216,9 @@ class Collection(object):
         Exactly the same as ``count`` but it's possible
         to use in more convenient way
 
-        .. code::
+        .. testcode::
+
+                c.test.create()
 
                 assert c.test.count() == len(c.test)
 
@@ -250,8 +248,6 @@ class Collection(object):
         response = self.connection.delete(
             self.DELETE_COLLECTION_PATH.format(self.name)
         )
-
-        self._response = response
 
         if response.status == 200:
             return True
@@ -288,10 +284,7 @@ class Collection(object):
 
         Sample usage:
 
-        .. code::
-
-                from arango import create
-                c = create()
+        .. testcode::
 
                 c.test.create()
 
@@ -300,15 +293,11 @@ class Collection(object):
         """
         if name is None or name == "":
             raise InvalidCollectionId(
-                "Please, provide correct collection name"
-            )
+                "Please, provide correct collection name")
 
-        response = self.connection.put(
+        response = self.connection.post(
             self.RENAME_COLLECTION_PATH.format(self.name),
-            data=dict(name=name)
-        )
-
-        self._response = response
+            data={"name": name})
 
         if not response.is_error:
             # pass new name to connection
@@ -329,17 +318,23 @@ class Collection(object):
         Otherwise method will set or update properties
         using values from ``**props``
         """
-        action = "get" if props == {} else "put"
+        url = self.PROPERTIES_COLLECTION_PATH.format(self.name)
 
-        return getattr(self.connection, action)(
-            self.PROPERTIES_COLLECTION_PATH.format(self.name),
-            data=props
-        )
+        if not props:
+            return self.connection.get(url).data
+
+        # update fields which should be updated,
+        # keep old fields as is
+        origin = self.properties()
+
+        if isinstance(origin, dict):
+            origin.update(props)
+
+        return self.connection.put(url, data=origin).data
 
     def truncate(self):
         """
         Truncate current **Collection**
         """
         return self.connection.put(
-            self.TRUNCATE_COLLECTION_PATH.format(self.name)
-        )
+            self.TRUNCATE_COLLECTION_PATH.format(self.name))

@@ -1,5 +1,7 @@
-import unittest
+import os
 import logging
+import unittest
+import time
 
 from arango.core import Connection
 
@@ -7,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 __all__ = ("TestsIntegration",)
+
+# timeout which we wait for async actions from ArangoDB
+DEFAULT_TIMEOUT = 0.2
 
 
 class TestsIntegration(unittest.TestCase):
@@ -19,8 +24,19 @@ class TestsIntegration(unittest.TestCase):
     def setUp(self):
         self.conn = Connection()
 
+        # enable verbose output for tests
+        if "DEBUG_HTTP" in os.environ:
+            self.conn.client.DEBUG = True
+
     def tearDown(self):
         c = self.conn
 
         logger.info("Deleting/Cleaning up collection 'test'")
         c.collection.test.delete()
+
+    def wait(self, times=1):
+        """
+        Waiting for async actions ``times`` times
+        """
+        for c in range(times):
+            time.sleep(DEFAULT_TIMEOUT)

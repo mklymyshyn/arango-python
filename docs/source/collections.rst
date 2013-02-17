@@ -1,3 +1,9 @@
+.. testsetup::
+
+    from arango import create
+    c = create()
+
+
 .. _collections:
 
 Collections
@@ -16,6 +22,7 @@ It's quite easy to create collection::
     # here we creating collection explicitly
     c.test.create()
 
+    assert len(c.collections()) == 1
 
 Collection ``test`` being created.
 
@@ -25,12 +32,9 @@ Collection ``test`` being created.
     of new **Document**
 
 
-If you don't want to create collection explicitly use::
+If you don't want to create collection explicitly use
 
-    from arango import create
-
-    # here we define connection to Arango
-    c = create()
+.. testcode::
 
     # here we creating document AND collection
     c.test.documents.create({"sample": 1}, createCollection=True)
@@ -41,12 +45,9 @@ Get list of collections
 
 To get list of **Collections** simply call connection like `c()`
 
-For example::
+For example:
 
-    from arango import create
-
-    # here we define connection to Arango
-    c = create()
+.. testcode::
 
     # here we creating collection explicitly
     c.test.create()
@@ -69,7 +70,7 @@ Collection instance methods is quite rich. Here is
 documentation which describe :term:`Collections REST Api`
 
 .. autoclass:: arango.collection.Collection
-    :members: cid, response, info, properties,
+    :members: cid, info, properties,
               create, delete, rename,
               count, __len__,
               index, documents, edges,

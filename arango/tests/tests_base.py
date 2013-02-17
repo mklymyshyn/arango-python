@@ -1,8 +1,10 @@
+import types
 import unittest
-import requests
 
 from mock import patch, MagicMock
+from arango.clients import Client
 
+from arango.clients.base import RequestsBase
 from arango.core import Connection
 
 __all__ = ("TestsBase",)
@@ -14,7 +16,9 @@ class TestsBase(unittest.TestCase):
 
     def setUp(self):
         for m in self.methods:
-            setattr(self, m, patch("requests.{0}".format(m)))
+            setattr(self, m,
+                    patch.object(Client, m,
+                    MagicMock()))
             getattr(self, m).start()
 
         self.conn = Connection()
@@ -22,15 +26,20 @@ class TestsBase(unittest.TestCase):
 
     def tearDown(self):
         for m in self.methods:
-            getattr(self, m).stop()
+            try:
+                getattr(self, m).stop()
+            except RuntimeError:
+                pass
+
+    def build_mock_response(self, *args, **kwargs):
+        return RequestsBase.build_response(
+            200, "{}", [], "{}")
 
     def response_mock(self, status_code=200, text='', method="get"):
-        # `requests` Response mock
-        response_mock = MagicMock()
-        response_mock.text = text
-        response_mock.status_code = status_code
+        mock_method = lambda self, *a, **kw: RequestsBase.build_response(
+            status_code, "", [], text)
 
-        mock_method = lambda *a, **k: response_mock
-        patcher = patch("requests.{0}".format(method), mock_method)
+        mock_method = types.MethodType(mock_method, Client)
+        patcher = patch.object(Client, method, mock_method)
 
         return patcher

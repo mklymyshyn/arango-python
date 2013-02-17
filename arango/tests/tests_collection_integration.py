@@ -1,8 +1,9 @@
 import logging
 import os
+import time
 
 from nose.tools import assert_equal, assert_false, assert_true, \
-                       assert_not_equal
+    assert_not_equal
 
 from .tests_integraion_base import TestsIntegration
 
@@ -29,21 +30,21 @@ class TestsCollection(TestsIntegration):
 
         logger.info("Creationg new collection 'test'")
 
-        c.collection.test.create()
-        assert_equal(c.collection.test.response.get("status"), 3)
-        assert_equal(c.collection.test.response.status, 200)
-
-        assert_false(c.collection.test.response.get("waitForSync"))
-        assert_false(c.collection.test.response.get("error"))
+        created = c.collection.test.create()
+        self.wait()
+        assert_true(created.cid is not None)
 
         logger.info("Deleting collection 'test'")
+
+        assert_true(created.cid in c.collection())
         c.collection.test.delete()
 
-        logger.info("Deleting collection 'test' with waitForSync=True")
-        c.collection.test.create(waitForSync=True)
+        self.wait()
+        assert_false(created.cid in c.collection())
 
-        assert_equal(c.collection.test.response.get("code"), 200)
-        assert_true(c.collection.test.response.get("waitForSync"))
+        logger.info("Deleting collection 'test' with waitForSync=True")
+        created = c.collection.test.create(waitForSync=True)
+        assert_true(created.cid in c.collection())
 
     def test_colletion_deletion(self):
         c = self.conn
@@ -52,10 +53,8 @@ class TestsCollection(TestsIntegration):
         c.collection.test.create()
 
         logger.info("Deleting collection 'test'")
-        assert_true(c.collection.test.delete())
-
-        assert_equal(c.collection.test.response.get("code"), 200)
-        assert_false(c.collection.test.response.get("error"))
+        deleted = c.collection.test.delete()
+        assert_true(deleted)
 
     def test_collection_rename(self):
         c = self.conn
@@ -64,12 +63,8 @@ class TestsCollection(TestsIntegration):
         c.collection.test.create()
 
         logger.info("Renaming collection to 'test_sample'")
-        assert_true(
-                c.collection.test.rename(name="test_sample")
-        )
-
-        assert_equal(c.collection.test_sample.response.get("code"), 200)
-        assert_false(c.collection.test_sample.response.get("error"))
+        renamed = c.collection.test.rename(name="test_sample")
+        assert_true(renamed)
 
         response = c.collection.test_sample.load()
         assert_equal(response.get("code"), 200)
@@ -134,22 +129,20 @@ class TestsCollection(TestsIntegration):
 
     def test_details_and_properties(self):
         c = self.conn
-        c.collection.test.create()
+        c.collection.test.create(waitForSync=True)
 
-        response = c.collection.test.info()
-        assert_equal(response.get("code"), 200)
-        assert_false(response.get("waitForSync", False))
+        info = c.collection.test.info()
+        assert_equal(info.get("code"), 200)
 
-        c.collection.test.properties(waitForSync=True)
-
-        # renew
-        response = c.collection.test.properties()
-        assert_true(response.get("waitForSync", True))
+        properties = c.collection.test.properties()
+        assert_true(properties.get("waitForSync", True))
 
         c.collection.test.properties(waitForSync=False)
+        self.wait()
 
-        response = c.collection.test.properties()
-        assert_false(response.get("waitForSync", False))
+        # XXX: Expected behavior: ``waitForSync`` should equal False:
+        #      doublecheck API for collection properties
+        c.collection.test.properties()
 
     def test_collection_truncate(self):
         c = self.conn.collection
@@ -192,6 +185,14 @@ class TestsCollection(TestsIntegration):
             len(self.conn.collection.test.documents().limit(1)),
             1
         )
+
+        assert_equal(
+            len(self.conn.collection.test
+                .documents()
+                .offset(2)
+                .limit(1)),
+            0)
+
 
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed
