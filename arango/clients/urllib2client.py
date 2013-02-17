@@ -1,4 +1,3 @@
-from contextlib import closing
 import logging
 import functools
 import urllib2

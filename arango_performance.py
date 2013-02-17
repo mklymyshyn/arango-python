@@ -108,6 +108,22 @@ def urllib2_client():
     documents.connection.client = default_client
 
 
+def requests_client():
+    """
+    Simple example
+    """
+
+    from arango.clients.requestsclient import RequestsClient
+    default_client = documents.connection.client
+    documents.connection.client = RequestsClient
+
+    for i in range(collection_items):
+        body = {"value": "test_%d" % i}
+        documents.create(body)
+
+    documents.connection.client = default_client
+
+
 def plain_request():
     """
     Use only core functionality, no abstraction
@@ -122,6 +138,51 @@ def plain_request():
                 createCollection=False),
             data=body,
             _expect_raw=True)
+
+
+def plain_request_urllib2():
+    """
+    Use only core functionality, no abstraction
+    """
+    conn = documents.connection
+
+    from arango.clients.urllib2client import Urllib2Client
+    default_client = documents.connection.client
+    documents.connection.client = Urllib2Client
+    documents.connection.client.config(timeout=3)
+
+    for i in range(collection_items):
+        body = {"value": "test_%d" % i}
+        conn.post(
+            conn.qs(
+                Document.DOCUMENT_PATH,
+                createCollection=False),
+            data=body,
+            _expect_raw=True)
+
+    documents.connection.client = default_client
+
+
+def plain_request_requests():
+    """
+    Use only core functionality, no abstraction
+    """
+    conn = documents.connection
+
+    from arango.clients.requestsclient import RequestsClient
+    default_client = documents.connection.client
+    documents.connection.client = RequestsClient
+
+    for i in range(collection_items):
+        body = {"value": "test_%d" % i}
+        conn.post(
+            conn.qs(
+                Document.DOCUMENT_PATH,
+                createCollection=False),
+            data=body,
+            _expect_raw=True)
+
+    documents.connection.client = default_client
 
 
 def pycurl_client_raw():
@@ -161,8 +222,21 @@ print "SIMPLE (URLLIB2): Inserted: %d items, insertion time: %.3fms." % (
     collection_items, Timer.measure(urllib2_client))
 
 documents = cleanup(conn).documents
+print "SIMPLE (REQUESTS): Inserted: %d items, insertion time: %.3fms." % (
+    collection_items, Timer.measure(requests_client))
+
+documents = cleanup(conn).documents
 print "REST API: Inserted: %d items, insertion time: %.3fms." % (
     collection_items, Timer.measure(plain_request))
+
+documents = cleanup(conn).documents
+print "REST API (requests): Inserted: %d items, insertion time: %.3fms." % (
+    collection_items, Timer.measure(plain_request_requests))
+
+documents = cleanup(conn).documents
+print "REST API (urllib2): Inserted: %d items, insertion time: %.3fms." % (
+    collection_items, Timer.measure(plain_request_urllib2))
+
 
 documents = cleanup(conn).documents
 try:
