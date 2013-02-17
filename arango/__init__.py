@@ -1,4 +1,4 @@
-from .core import Connection
+from arango.core import Connection
 
 
 def create(**kwargs):
