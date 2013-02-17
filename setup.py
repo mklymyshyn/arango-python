@@ -13,22 +13,18 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 setup(
     name="arango",
     version=VERSION,
     description="Driver for ArangoDB",
-    author="Max Klymyshyn",
+    author="Maksym Klymyshyn",
     author_email="klymyshyn@gmail.com",
     url="http://arangodb-python-driver.readthedocs.org/en/latest/",
     packages=["arango"],
-    long_description=open("README.md").read(),
-    package_data={'': ['LICENSE']},
+    long_description=open("README.rst").read(),
     include_package_data=True,
-    data_files=[
-        ("./", ["README.md"]),
-    ],
     install_requires=["nose", "mock", "pycurl"],
     test_suite="nose",
     classifiers=[

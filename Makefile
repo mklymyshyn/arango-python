@@ -2,6 +2,7 @@
 .PHONY: coverage
 .DEFAULT: raw
 
+-include Makefile.local
 
 export INTEGRATION=1
 
@@ -26,7 +27,7 @@ one:
 
 doc:
 	cd docs && make clean && make html && \
-		rsync -avz build/html/* -e ssh apps@klymyshyn.com:/home/apps/arango/*
+		rsync -avz build/html/* -e ssh $(DOCS_HOST)
 
 %:
 	@echo Test: "$*"

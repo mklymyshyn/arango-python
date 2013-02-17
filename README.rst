@@ -1,32 +1,26 @@
-ArangoDB Driver for Python
-==========================
+Python driver for ArangoDB
+--------------------------
+
+Driver for **ArangoDB REST API** inrerface, `arangodb.org <http://arangodb.org>`_
 
 Features support
-----------------
+****************
 
 Driver for Python is incomplete. It supports at the moment:
 **Connections to ArangoDB with custom options**,
 **Collections**, **Documents**, **Indexes** **Cursors**
 and have partial support of **Edges**
 
-
-Getting started
----------------
-
 Installation
-~~~~~~~~~~~~~
-
-Library is in early alpha so it's not on PyPi yet. To install use `pip`::
+************
+::
 
   pip install arango
 
 
-Usage example
-~~~~~~~~~~~~~
-
-It's quite simple to start work with **ArangoDB**:
-
-.. doctest::
+Usage
+*****
+To start work with **ArangoDB** try following example::
 
     from arango import create
 
@@ -45,35 +39,13 @@ It's quite simple to start work with **ArangoDB**:
     for doc in voca.connection.query("FOR d in test_collection RETURN d"):
       print doc.id
 
-
-Contents
----------
-.. toctree::
-   :maxdepth: 2
-
-   collections
-   documents
-   queries
-   indexes
-   edges
-   exceptions
-   glossary
-   guidelines
+For more details please read `Documentation <http://arangodb-python-driver.readthedocs.org/en/latest/>`_
 
 
-Platforms and Python versions
------------------------------
+Supported Python interpreters and versions:
 
-This release support *Python 2.7*, *PyPy 1.9*.
-
-Next in chain is *Python 3.3*
+ - cPython 2.7
+ - PyPy 1.9
 
 
-
-Indices and tables
--------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+Developed by Maksym Klymyshyn

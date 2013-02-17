@@ -4,3 +4,6 @@ env/*
 coverage/*
 docs/build/*
 *.egg-info
+dist/*
+Makefile.local
+urllib2_pypy.py
