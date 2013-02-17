@@ -4,25 +4,19 @@ Driver for **ArangoDB REST API** inrerface.
 
 ## Features support
 
-Package is incomplete. It supports at the moment:
+Driver for Python is incomplete. It supports at the moment:
 **Connections to ArangoDB with custom options**,
-**Collections**,
-**Documents**,
-**Edges**,
-**Indexes**
+**Collections**, **Documents**, **Indexes** **Cursors**
+and have partial support of **Edges**
 
-What's not supported in current version:
 
- - Ability to make Queries
- - Cursors
-
-For more details please read **[documentation](http://arango.klymyshyn.com)**
+For more details please read **[documentation](http://arangodb-python-driver.readthedocs.org/en/latest/)**
 
 
 Supported Python interpreters and versions:
 
- - cPython 2.6, 2.7
- - PyPy 1.8, 1.9
+ - cPython 2.7
+ - PyPy 1.9
 
 
-&copy; 2012 Max Klymyshyn
+&copy; 2012-2013 Maksym Klymyshyn
