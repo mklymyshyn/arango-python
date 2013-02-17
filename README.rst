@@ -3,6 +3,9 @@ Python driver for ArangoDB
 
 Driver for **ArangoDB REST API** inrerface, `arangodb.org <http://arangodb.org>`_
 
+.. image:: https://travis-ci.org/joymax/arango-python.png?branch=master
+
+
 Features support
 ****************
 
