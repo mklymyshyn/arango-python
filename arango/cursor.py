@@ -9,17 +9,33 @@ logger = logging.getLogger(__name__)
 
 
 class Cursor(object):
-    """API to work with Cursors in ArangoDB.
-    I don't see a reason why it shouldn't be a
-    common routine to work with AQL.
+    """
+    Work with **Cursors** in ArangoDB.
+    At the moment, it's
+    common routine to work with **AQL** from this driver.
 
-    Quote from ArangoDB Wiki:
-        Note: the server will also destroy abandoned
+    .. note:: the server will also destroy abandoned
               cursors automatically after a certain
               server-controlled timeout to
               avoid resource leakage.
 
-    https://github.com/triAGENS/ArangoDB/wiki/HttpCursor
+    - ``query`` - contains the query string to be executed (mandatory)
+    - ``count`` - boolean flag that indicates whether the
+            number of documents found should be
+            returned as "count" attribute in the
+            result set (optional). Calculating the
+            "count" attribute might have a performance
+            penalty for some queries so this option
+            is turned off by default.
+
+    - ``batchSize`` - maximum number of result documents to be
+                transferred from the server to the client in
+                one roundtrip (optional).
+                If this attribute is not set, a server-controlled
+                default value will be used.
+    - ``bindVars`` - key/value list of bind parameters (optional).
+    - ``wrapper`` - by default it's ``Document.load``
+              class, wrap result into
     """
     CREATE_CURSOR_PATH = "/_api/cursor"
     DELETE_CURSOR_PATH = "/_api/cursor/{0}"
@@ -28,25 +44,6 @@ class Cursor(object):
     def __init__(self, connection, query,
                  count=True, batchSize=None, bindVars=None,
                  wrapper=Document.load):
-        """
-            ``query`` - contains the query string to be executed (mandatory)
-            ``count`` - boolean flag that indicates whether the
-                        number of documents found should be
-                        returned as "count" attribute in the
-                        result set (optional). Calculating the
-                        "count" attribute might have a performance
-                        penalty for some queries so this option
-                        is turned off by default.
-
-            ``batchSize`` - maximum number of result documents to be
-                            transferred from the server to the client in
-                            one roundtrip (optional).
-                            If this attribute is not set, a server-controlled
-                            default value will be used.
-            ``bindVars`` - key/value list of bind parameters (optional).
-            ``wrapper`` - by default it's ``Document.wrap``
-                          class, wrap result into
-        """
         self.connection = connection
         self.query = query
 

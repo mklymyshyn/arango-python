@@ -1,8 +1,5 @@
 import sys
 import time
-import StringIO
-
-import pycurl
 
 from datetime import datetime
 
@@ -81,16 +78,37 @@ conn = get_connection()
 documents = cleanup(conn).documents
 
 
-def simple():
+def pycurl_client():
     """
     Simple example
     """
+    import pycurl
+
     for i in range(collection_items):
         body = {"value": "test_%d" % i}
         documents.create(body)
 
 
-def raw():
+def urllib2_client():
+    """
+    Simple example with urllib2
+    """
+    from arango.clients.urllib2client import Urllib2Client
+    default_client = documents.connection.client
+    documents.connection.client = Urllib2Client
+    documents.connection.client.config(timeout=3)
+
+    for i in range(collection_items):
+        body = {"value": "test_%d" % i}
+        try:
+            documents.create(body)
+        except Exception, exc:
+            print "Connection timeout on {} iteration".format(i)
+
+    documents.connection.client = default_client
+
+
+def plain_request():
     """
     Use only core functionality, no abstraction
     """
@@ -106,21 +124,13 @@ def raw():
             _expect_raw=True)
 
 
-def plain_request():
-    """
-    Example which just using REST API without
-    any driver
-    """
-    url = "http://127.0.0.1:8529/_api/document?collection=testdocs_py"
-    for i in range(collection_items):
-        body = {"value": "test_%d" % i}
-        Client.post(url, data=json.dumps(body))
-
-
-def pycurl_client():
+def pycurl_client_raw():
     """
     PyCURL
     """
+    import StringIO
+    import pycurl
+
     url = "http://127.0.0.1:8529/_api/document?collection=testdocs_py"
 
     for i in range(collection_items):
@@ -136,20 +146,27 @@ def pycurl_client():
         c.perform()
         c.close()
 
-        data = b.getvalue()
+        b.getvalue()
 
 
-print "SIMPLE: Inserted: %d items, insertion time: %.3fms." % (
-    collection_items, Timer.measure(simple))
+try:
+    print "SIMPLE (PYCURL/Default): "\
+        "Inserted: %d items, insertion time: %.3fms." % (
+            collection_items, Timer.measure(pycurl_client))
+except ImportError:
+    print "SIMPLE: Install PyCURL binding to measure this kind of client"
 
 documents = cleanup(conn).documents
-print "RAW: Inserted: %d items, insertion time: %.3fms." % (
-    collection_items, Timer.measure(raw))
+print "SIMPLE (URLLIB2): Inserted: %d items, insertion time: %.3fms." % (
+    collection_items, Timer.measure(urllib2_client))
 
 documents = cleanup(conn).documents
 print "REST API: Inserted: %d items, insertion time: %.3fms." % (
     collection_items, Timer.measure(plain_request))
 
 documents = cleanup(conn).documents
-print "PYCURL + REST API: Inserted: %d items, insertion time: %.3fms." % (
-    collection_items, Timer.measure(pycurl_client))
+try:
+    print "PYCURL + REST API: Inserted: %d items, insertion time: %.3fms." % (
+        collection_items, Timer.measure(pycurl_client_raw))
+except ImportError:
+    print "PyCURL NOT INSTALLED, IGNORE"

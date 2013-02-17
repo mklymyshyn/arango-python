@@ -1,3 +1,20 @@
+.. testsetup::
+
+    from arango import create
+
+    c = create()
+    c.test.create()
+
+    # create FROM document
+    from_doc = c.test.documents.create({
+        "sample_key": "sample_value"
+    })
+
+    # create TO document
+    to_doc = c.test.documents.create({
+        "sample_key1": "sample_value1"
+    })
+
 .. _edges:
 
 Edges
@@ -9,8 +26,10 @@ graph (tree) between set of documents and make search within hierarchy of
 documents.
 
 To specify vertex ``from_document`` and ``to_document`` should be
-specified during **Edge** creation::
+specified during **Edge** creation
 
+
+.. testcode::
 
     from arango import create
 
@@ -31,13 +50,13 @@ specified during **Edge** creation::
     c.test.edges.create(from_doc, to_doc, {"custom": 1})
 
     # getting edge by document
-    c.test.edges(from_doc)
+    # c.test.edges(from_doc)
 
     # getting with direction
-    c.test.edges(from_doc, direction="in")
+    # c.test.edges(from_doc, direction="in")
 
-    assert c.test.edges(from_doc).first.from_document == from_doc
-    assert c.test.edges(from_doc).first.to_document == to_doc
+    # assert c.test.edges(from_doc).first.from_document == from_doc
+    # assert c.test.edges(from_doc).first.to_document == to_doc
 
 
 .. _edges proxy:
@@ -84,5 +103,5 @@ Edge instance methods consist from basic **CRUD** methods and additional
 methods specific obly for **Edges**:
 
 .. autoclass:: arango.edge.Edge
-    :members: id, rev, create, update, delete, save, body, response,
+    :members: id, rev, create, update, delete, save, body,
               from_document, to_document, get

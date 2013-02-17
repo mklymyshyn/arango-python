@@ -3,6 +3,7 @@
     from arango import create
 
     c = create()
+    c.test.delete()
     c.test.create()
 
 .. _documents:
@@ -44,28 +45,7 @@ Basically via `docuemnts` shortcut accessible **Docuemnts Proxy** - Proxy object
 Below described basic method within ``Documents`` proxy:
 
 .. autoclass:: arango.document.Documents
-    :members: create, delete, update, count
-
-
-Making queries
-~~~~~~~~~~~~~~
-
-.. todo::
-    Describe how to making queries
-
-.. warning::
-    This part of functionality isn't implemented at all at the moment.
-    It will be implemented in **ALPHA** release of the project.
-
-It's possible to get only all documents for :ref:`Collection`::
-
-    ...
-
-    # getting with direction
-    c.test.documents()
-
-
-More details in :term:`Documents REST Api` documentation of **ArangoDB**
+    :members: create, delete, update, count, load
 
 
 

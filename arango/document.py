@@ -110,6 +110,22 @@ class Documents(object):
 
         return doc.update(*args, **kwargs)
 
+    def load(self, doc_id):
+        """
+        Load particular document by id ``doc_id``.
+
+        **Example:**
+
+        .. testcode::
+
+            doc_id = c.test.documents.create({"x": 2}).id
+            doc = c.test.documents.load(doc_id)
+
+            assert doc.body["x"] == 2
+
+        """
+        return Document.load(self.connection, id=doc_id)
+
 
 class Document(ComparsionMixin, LazyLoadMixin):
     """Particular instance of Document"""
@@ -180,8 +196,11 @@ class Document(ComparsionMixin, LazyLoadMixin):
             assert doc.body["x"] == same_doc.body["x"]
 
         """
-        if meta is not None and id is None and "_id" in meta:
+        if isinstance(meta, dict) and "_id" in meta:
             id = meta.get("_id")
+
+        if id is None:
+            raise DocumentNotFound("id equal to None, can't load")
 
         response = connection.get(
             cls.READ_DOCUMENT_PATH.format(id),
@@ -223,14 +242,15 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
         .. testcode::
 
-            doc = c.test.documents.create({"x": 2})
+            doc_id = c.test.documents.create({"x": 2}).id
 
-            assert c.test.documents().first.body == {"x": 2}
+            doc = c.test.documents.load(doc_id)
+            assert doc.body["x"] == 2
 
             doc.body = {"x": 1}
             doc.save()
 
-            assert c.test.documents().first.body == {"x": 1}
+            assert c.test.documents.load(doc_id).body["x"] == 1
         """
         return self.get()
 

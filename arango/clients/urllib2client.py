@@ -1,3 +1,4 @@
+from contextlib import closing
 import logging
 import functools
 import urllib2
@@ -18,6 +19,7 @@ def safe_request(func):
         try:
             return func(*args, **kwargs)
         except urllib2.HTTPError, e:
+            e.close()
             return RequestsBase.build_response(
                 e.code, e.msg, e.headers, "")
 
@@ -29,16 +31,25 @@ class Urllib2Client(RequestsBase):
     If no PyCURL bindings available or
     client forced by hands. Quite useful for PyPy.
     """
+    _config = {}
+
+    @classmethod
+    def config(cls, **kwargs):
+        cls._config.update(kwargs)
+
     @classmethod
     def parse_response(cls, r, content=None):
-        return cls.build_response(
-            r.code, r.msg, r.headers, content)
+        headers = {}
+        headers.update(r.headers.__dict__["dict"])
+        return cls.build_response(r.code, r.msg, headers, content)
 
     @classmethod
     @safe_request
     def get(cls, url, **kwargs):
         response = urllib2.urlopen(url)
-        return cls.parse_response(response, content=response.read())
+        content = response.read()
+        response.close()
+        return cls.parse_response(response, content=content)
 
     @classmethod
     @safe_request
@@ -49,7 +60,7 @@ class Urllib2Client(RequestsBase):
         req = urllib2.Request(url)
         req.add_header('Content-Type', 'application/json')
         req.add_data(data)
-        response = urllib2.urlopen(req)
+        response = urllib2.urlopen(req, **cls._config)
 
         content = response.read()
         response.close()

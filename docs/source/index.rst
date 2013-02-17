@@ -11,15 +11,9 @@ Features support
 
 Driver for Python is incomplete. It supports at the moment:
 **Connections to ArangoDB with custom options**,
-**Collections**,
-**Documents**,
-**Edges**,
-**Indexes**
+**Collections**, **Documents**, **Indexes** **Cursors**
+and have partial support of **Edges**
 
-What's not supported in current version:
-
-  #. Ability to make Queries
-  #. Cursors
 
 Getting started
 ---------------
@@ -66,8 +60,9 @@ Contents
    :maxdepth: 2
 
    collections
-   indexes
    documents
+   queries
+   indexes
    edges
    exceptions
    glossary
@@ -77,9 +72,9 @@ Contents
 Platforms and Python versions
 -----------------------------
 
-This release support *Python 2.6*, *Python 2.7* and *PyPy 1.8*.
+This release support *Python 2.7*, *PyPy 1.9*.
 
-Next in chain are *PyPy 1.9* and *Python 3.3*
+Next in chain is *Python 3.3*
 
 
 
