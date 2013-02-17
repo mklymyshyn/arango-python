@@ -7,6 +7,7 @@ __all__ = ("PyCurlClient",)
 
 CONTINUE_HEADER = "HTTP/1.1 100 (Continue)"
 
+
 def performer(func):
     """
     Decorator to simplify work with PyCURL

@@ -2,7 +2,7 @@ from nose.tools import assert_equal, assert_not_equal, \
     assert_true, assert_false, raises
 
 
-from mock import Mock, patch
+from mock import Mock
 
 from .tests_base import TestsBase
 

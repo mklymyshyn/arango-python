@@ -31,11 +31,11 @@ class TestsCollection(TestsIntegration):
         logger.info("Creationg new collection 'test'")
 
         created = c.collection.test.create()
+        self.wait()
         assert_true(created.cid is not None)
 
         logger.info("Deleting collection 'test'")
 
-        self.wait()
         assert_true(created.cid in c.collection())
         c.collection.test.delete()
 
