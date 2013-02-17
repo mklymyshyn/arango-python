@@ -30,7 +30,7 @@ class ComparsionMixin(object):
                     return -1
 
         if (self._id is not None and self._rev is not None and
-                self._id != other._id or self._rev != other._rev):
+                self._id != other._id or str(self._rev) != str(other._rev)):
             return -1
 
         return 0

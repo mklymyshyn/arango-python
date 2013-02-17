@@ -1,6 +1,7 @@
 import copy
 import logging
 
+from .utils import parse_meta
 from .mixins import ComparsionMixin
 from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
@@ -39,53 +40,20 @@ class Edges(object):
 
     def count(self):
         """Get count of edges within current collection"""
-        response = self.connection.get(
-            self.EDGES_PATH.format(self.collection.cid)
-        )
-        return len(response.get("edges", []))
+        raise NotImplementedError(
+            "This functionality not implemented yet."
+            "Use ``connection.query`` with custom wrapper")
 
-    def prepare_resultset(self, rs, args=None, kwargs=None):
-        """This method should be called to prepare results"""
-
-        kwargs = kwargs if kwargs is not None else {}
-
-        if not args or not proxied_document_ref(args[0]):
-            raise DocumentIncompatibleDataType(
-                "First argument should be VERTEX (eq document)"
-            )
-
-        # specify vertex
-        kwargs.update({
-            "vertex": proxied_document_ref(args[0])
-        })
-
-        response = self.connection.get(
-            self.connection.qs(
-                self.EDGES_PATH.format(self.collection.cid),
-                **kwargs
-            )
-        )
-
-        edges = response.get("edges", [])[rs._offset:]
-
-        # set up response data
-        rs.response = response
-        rs.count = len(edges)
-
-        if rs._limit is not None:
-            edges = edges[:rs._limit]
-
-        rs.data = edges
+    def _cursor(self, rs):
+        return []
 
     def iterate(self, rs):
         """
         Execute to iterate results
         """
-        for edge in rs.data:
-            yield Edge(
-                collection=self.collection,
-                **edge
-            )
+        raise NotImplementedError(
+            "This functionality not implemented yet."
+            "Use ``connection.query`` with custom wrapper")
 
     def create(self, *args, **kwargs):
         """
@@ -252,17 +220,18 @@ class Edge(ComparsionMixin):
 
         return self._body.get(name, default)
 
-    def parse_edge_response(self, response):
+    def parse(self, response):
         """
         Parse Edge details
         """
-        self._id = response.get("_id", None)
-        self._rev = response.get("_rev", None)
+
         self._from = response.get("_from", None)
         self._to = response.get("_to", None)
-        self._body = response
+        self._body = response.data
 
-    def create(self, from_doc, to_doc, body, **kwargs):
+        return response
+
+    def create(self, from_doc, to_doc, body=None, **kwargs):
         """
         Method to create new edge.
         ``from_doc`` and ``to_doc`` may be both
@@ -305,13 +274,14 @@ class Edge(ComparsionMixin):
                 self.EDGE_PATH,
                 **params
             ),
-            data=body)
+            data=body or {})
 
         # define document ID
-        if response.status in [201, 202]:
-            self.parse_edge_response(response)
+        if response.status in [200, 201, 202]:
+            self.parse(parse_meta(self, response))
+            return self
 
-        return self
+        return None
 
     def delete(self):
         """
@@ -319,14 +289,12 @@ class Edge(ComparsionMixin):
         this method return ``True`` and in other case ``False``
         """
         response = self.connection.delete(
-            self.DELETE_EDGE_PATH.format(self.id)
-        )
-
-        self._response = response
+            self.DELETE_EDGE_PATH.format(self.id))
 
         if response.get("code", 500) == 204:
-            self.parse_edge_response({})
-            self._body = None
+            self.parse(parse_meta(self, response))
+            self._from, self._to = None, None
+            self._id, self._rev, self._body = None, None, None
             return True
 
         return False
@@ -391,14 +359,13 @@ class Edge(ComparsionMixin):
         response = self.connection.put(
             self.UPDATE_EDGE_PATH.format(self.id),
             data=data,
-            **kwargs
-        )
+            **kwargs)
 
         self._response = response
 
         # update revision of the edge
         if response.get("code", 500) in [201, 202]:
-            self._rev = response.get("_rev")
+            parse_meta(self, response)
             return self
 
         return None

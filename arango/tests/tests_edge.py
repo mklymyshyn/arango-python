@@ -4,7 +4,7 @@ from mock import Mock, patch
 from nose.tools import assert_equal, assert_true, raises, \
     assert_not_equal
 
-from arango.edge import Edges
+from arango.edge import Edges, Edge
 from arango.utils import json
 from arango.exceptions import EdgeAlreadyCreated
 
@@ -86,7 +86,8 @@ class TestEdge(TestDocumentBase):
     @raises(EdgeAlreadyCreated)
     def test_edge_create_of_created(self):
         body = {"value": "test"}
-        edge = self.c.edges.create(None, None, body)
+
+        edge = Edge(self.c)
         edge._id = 1
         edge.create(None, None, body)
 

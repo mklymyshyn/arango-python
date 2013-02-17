@@ -4,7 +4,7 @@ from .mixins import ComparsionMixin, LazyLoadMixin
 from .exceptions import DocumentAlreadyCreated, \
     DocumentIncompatibleDataType, DocumentNotFound, \
     DocuemntUpdateError
-from .utils import proxied_document_ref
+from .utils import proxied_document_ref, parse_meta
 
 __all__ = ("Documents", "Document",)
 
@@ -38,38 +38,37 @@ class Documents(object):
         """
         Get count of all documents in :ref:`collection`
         """
-        response = self.connection.get(
-            self.DOCUMENTS_PATH.format(self.collection.cid)
-        )
 
-        return len(response.get("documents", []))
+        cursor = self.connection.query(
+            "FOR d IN {} RETURN d".format(
+                self.collection.cid),
+            count=True)
+        return len(cursor)
 
-    def prepare_resultset(self, rs, args=None, kwargs=None):
-        response = self.connection.get(
-            self.DOCUMENTS_PATH.format(self.collection.cid)
-        )
+    def _cursor(self, rs):
+        return self.connection.query(
+            "FOR d IN {} {} RETURN d".format(
+                self.collection.cid, self._limits(rs)),
+            count=True)
 
-        doc_urls = response.get("documents", [])[rs._offset:]
+    def _limits(self, rs):
+        limit = ""
 
-        rs.response = response
-        rs.count = len(doc_urls)
+        if rs._limit:
+            limit = "LIMIT {}".format(rs._limit)
 
-        if rs._limit is not None:
-            doc_urls = doc_urls[:rs._limit]
+            if rs._offset:
+                limit = "LIMIT {}, {}".format(
+                    rs._offset, rs._limit)
 
-        rs.data = doc_urls
+        return limit
 
     def iterate(self, rs):
         """This method will be called within Resultset so
         it should get list of document"""
 
-        #import ipdb; ipdb.set_trace()
-        for url in rs.data or []:
-            yield Document(
-                collection=self.collection,
-                connection=self.connection,
-                resource_url=url
-            )
+        for doc in self._cursor(rs):
+            yield doc
 
     def create(self, *args, **kwargs):
         """
@@ -101,14 +100,14 @@ class Documents(object):
         """
         Update document
 
-        ``ref_or_document`` may be either plai reference or
+        ``ref_or_document`` may be either plain reference or
         Document instance
         """
-        doc = Document(
-            collection=self.collection,
-            connection=self.connection,
-            id=proxied_document_ref(ref_or_document)
-        )
+        if not issubclass(type(ref_or_document), Document):
+            doc = Document.load(self.connection, id=ref_or_document)
+        else:
+            doc = ref_or_document
+
         return doc.update(*args, **kwargs)
 
 
@@ -123,7 +122,8 @@ class Document(ComparsionMixin, LazyLoadMixin):
     LAZY_LOAD_HANDLERS = ["id", "rev", "body", "get", "update", "delete"]
     IGNORE_KEYS = set(["_rev", "_id"])
 
-    def __init__(self, collection=None, id=None,
+    def __init__(self, collection=None,
+                 id=None, rev=None,
                  resource_url=None, connection=None):
         """You have to specify collection and you *may* specify either:
          - documents id
@@ -134,7 +134,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
         self._body = None
         self._id = id
-        self._rev = None
+        self._rev = rev or None
         self._resource_url = resource_url
 
         self._lazy_loaded = True
@@ -154,45 +154,48 @@ class Document(ComparsionMixin, LazyLoadMixin):
         """
         Revision of the :ref:`Document` instance
         """
-        if not self._rev and self._id is not None:
-            self._rev = self._id.split("/")[1]
-
         return self._rev
 
-    def lazy_loader(self):
-        # TODO: maybe need to deal with `etag`
+    @classmethod
+    def wrap(cls, connection, item):
+        doc = cls(connection=connection,
+                  id=item.get("_id"),
+                  rev=item.get("_rev"))
+        doc._body = item
+        doc._lazy_loaded = True
+        return doc
 
-        if self._resource_url is not None:
-            # FIXME: here I have to parse reference from
-            # URL which isn't cool
+    @classmethod
+    def load(cls, connection, meta=None, id=None):
+        """
+        Method to load particular document from database
+        by using meta information (which passed by ``Cursor``)
+        or by specified document ``id``
 
-            # NB: This appropriate only for key/value or
-            # lists, if document body is object then
-            # everything is ok
-            chunks = self._resource_url.split("/")
-            self._id = "{0}/{1}".format(chunks[-2], chunks[-1])
-            self._rev = chunks[-1]
+        .. testcode::
 
-            response = self.connection.get(
-                self._resource_url,
-                _expect_raw=True)
-        else:
-            response = self.connection.get(
-                self.READ_DOCUMENT_PATH.format(self._id),
-                _expect_raw=True
-            )
+            doc = c.test.documents.create({"x": 2})
+
+            same_doc = Document.load(c.connection, id=doc.id)
+            assert doc.body["x"] == same_doc.body["x"]
+
+        """
+        if meta is not None and id is None and "_id" in meta:
+            id = meta.get("_id")
+
+        response = connection.get(
+            cls.READ_DOCUMENT_PATH.format(id),
+            _expect_raw=True)
 
         if response.status != 200:
             raise DocumentNotFound(
                 "Sorry, document with handle `{0}` "
-                "not exist in database".format(self._id)
-            )
+                "not exist in database".format(id))
 
-        self._body = response.data
+        return cls.wrap(connection, response.data)
 
-        if isinstance(response.data, dict):
-            self._id = response.data.get("_id", self._id)
-            self._rev = response.data.get("_rev", self._rev)
+    def lazy_loader(self):
+        return Document.load(self.connection, id=self._id)
 
     def __getitem__(self, name):
         """Get element by dict-like key"""
@@ -218,16 +221,16 @@ class Document(ComparsionMixin, LazyLoadMixin):
         This property setter also should be used if
         overwriting of whole document is required.
 
-        .. code::
+        .. testcode::
 
-            doc = c.documents.create([1])
+            doc = c.test.documents.create({"x": 2})
 
-            assert c.documents().first.body == [1]
+            assert c.test.documents().first.body == {"x": 2}
 
-            doc.body = [2]
+            doc.body = {"x": 1}
             doc.save()
 
-            assert c.documents().first.body == [2]
+            assert c.test.documents().first.body == {"x": 1}
         """
         return self.get()
 
@@ -245,9 +248,12 @@ class Document(ComparsionMixin, LazyLoadMixin):
         explicitly.
 
         To get specific value for specific key in body use and default
-        *(fallback)* value ``0``::
+        *(fallback)* value ``0``
 
-            document.get(name="sample_key", default=0)
+        .. testcode::
+
+
+            c.test.documents().first.get(name="sample_key", default=0)
         """
 
         if not self._body:
@@ -293,13 +299,12 @@ class Document(ComparsionMixin, LazyLoadMixin):
                 self.DOCUMENT_PATH,
                 **params
             ),
-            data=body
-        )
+            data=body)
 
         if response.status in [200, 201, 202]:
-            self._id = response.get("_id")
-            self._rev = response.get("_rev")
             self._body = body
+            parse_meta(self, response)
+
             return self
 
         return None
@@ -360,7 +365,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
 
         # update revision of the document
         if response.status in [200, 201, 202]:
-            self._rev = response.get("_rev")
+            self._rev = response.data.get("_rev")
             return self
 
         raise DocuemntUpdateError(

@@ -1,4 +1,3 @@
-
 from .tests_base import TestsBase
 
 from nose.tools import assert_equal, raises, assert_false, \
@@ -19,7 +18,7 @@ class TestDocumentBase(TestsBase):
         return self.response_mock(
             status_code=200,
             text=json.dumps(dict(
-                _rev=30967598,
+                _rev="30967598",
                 _id="1/30967598",
                 error=False,
                 code=204
@@ -40,7 +39,7 @@ class TestDocumentBase(TestsBase):
     def create_response_mock(self, _id=None, body=None):
         body = body if body is not None else {}
         defaults = dict(
-            _rev=_id or 30967598,
+            _rev="30967598",
             _id="1/30967598",
             error=False,
             code=201
@@ -310,11 +309,6 @@ class TestDocument(TestDocumentBase):
 
         assert_not_equal(doc._id, None)
         assert_equal(doc._rev, None)
-
-        assert_equal(
-            str(doc.rev),
-            doc._id.split("/")[1]
-        )
 
     def test_repr(self):
         doc = self.create_document({})

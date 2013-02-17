@@ -28,7 +28,9 @@ sys.path.append(os.path.abspath('_themes'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage']
+extensions = [
+    'sphinx.ext.autodoc', 'sphinx.ext.todo',
+    'sphinx.ext.coverage', 'sphinx.ext.doctest']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -152,7 +154,7 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -231,10 +233,12 @@ man_pages = [
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'ArangoDBPythonDriver', u'ArangoDB Python Driver Documentation',
-   u'Max Klymyshyn', 'ArangoDBPythonDriver', 'One line description of project.',
-   'Miscellaneous'),
+texinfo_documents = [(
+    'index', 'ArangoDBPythonDriver',
+    u'ArangoDB Python Driver Documentation',
+    u'Max Klymyshyn', 'ArangoDBPythonDriver',
+    'One line description of project.',
+    'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

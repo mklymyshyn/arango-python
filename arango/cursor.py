@@ -26,7 +26,8 @@ class Cursor(object):
     READ_NEXT_BATCH_PATH = "/_api/cursor/{0}"
 
     def __init__(self, connection, query,
-                 count=True, batchSize=None, bindVars=None):
+                 count=True, batchSize=None, bindVars=None,
+                 wrapper=Document.load):
         """
             ``query`` - contains the query string to be executed (mandatory)
             ``count`` - boolean flag that indicates whether the
@@ -43,13 +44,15 @@ class Cursor(object):
                             If this attribute is not set, a server-controlled
                             default value will be used.
             ``bindVars`` - key/value list of bind parameters (optional).
+            ``wrapper`` - by default it's ``Document.wrap``
+                          class, wrap result into
         """
         self.connection = connection
         self.query = query
 
         # boolean flag: show count in results or not
         self.count = count
-
+        self.wrapper = wrapper
         self.batchSize = batchSize
         self.bindVars = bindVars if \
             isinstance(bindVars, dict) else {}
@@ -82,8 +85,7 @@ class Cursor(object):
 
         try:
             item = self._dataset.pop(0)
-            doc_id = item.get("_id")
-            return Document(id=doc_id, connection=self.connection)
+            return self.wrapper(self.connection, item)
         except IndexError:
             if self._hasMore:
                 self.bulk()

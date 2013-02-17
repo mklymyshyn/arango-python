@@ -1,6 +1,8 @@
 import os
 import logging
 
+
+from nose.tools import assert_equal, assert_true
 from arango.cursor import Cursor
 
 from .tests_integraion_base import TestsIntegration
@@ -34,7 +36,33 @@ class TestsCursor(TestsIntegration):
             raise
 
 
+class TestQueries(TestsIntegration):
+    def test_query(self):
+        c = self.conn.collection
+        c.test.create()
+
+        cursor = self.conn.query("FOR d IN test RETURN d", count=True)
+        prev_len = len(cursor)
+
+        doc1 = c.test.docs.create({"doc": 1})
+        doc2 = c.test.docs.create({"doc": 2})
+
+        cursor = self.conn.query("FOR d IN test RETURN d", count=True)
+        assert_equal(len(cursor), prev_len + 2)
+
+        total = 0
+        for doc in cursor:
+            for cdoc in [doc1, doc2]:
+                if cdoc == doc:
+                    total += 1
+                    break
+
+        assert_equal(
+            total, 2,
+            "One of docs are not added to database")
+
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed
 if 'INTEGRATION' not in os.environ:
     TestsCursor = None
+    TestQueries = None

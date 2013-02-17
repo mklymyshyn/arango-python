@@ -3,6 +3,7 @@ import urllib
 
 from .utils import json
 from .clients import Client
+from .cursor import Cursor
 
 __all__ = ("Connection", "Response",
            "Resultset")
@@ -127,6 +128,12 @@ class Connection(object):
 
         return self._collection
 
+    def query(self, *args, **kwargs):
+        """
+        Proceed query (AQL) to the Database
+        """
+        return Cursor(self, *args, **kwargs)
+
     def __repr__(self):
         return "<Connection to ArangoDB ({0})>".format(self.url)
 
@@ -196,7 +203,7 @@ class Resultset(object):
 
         self.max_repr_items = 4
         self._response = None
-        self._count = 0
+        self._count = None
         self._data = None
 
     @property
@@ -209,14 +216,13 @@ class Resultset(object):
 
     def _prepare(self):
         """Prepare data"""
-        if not self.data:
+        if not self.data and hasattr(self.base, "prepare_resultset"):
             self.base.prepare_resultset(
                 self, args=self._args, kwargs=self._kwargs)
 
     @property
     def count(self):
-        self._prepare()
-        return self._count
+        return len(self)
 
     @count.setter
     def count(self, value):
@@ -250,14 +256,17 @@ class Resultset(object):
     @property
     def last(self):
         """Return last element from response"""
+        total = len(self.base._cursor(self))
         try:
-            return list(self)[-1]
+            return list(self.limit(1).offset(total - 1))[0]
         except IndexError:
             return None
 
     def __len__(self):
-        self._prepare()
-        return len(self.data)
+        if self._count is None:
+            self._count = len(self.base._cursor(self))
+
+        return self._count
 
     def __iter__(self):
         self._prepare()

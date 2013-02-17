@@ -186,33 +186,15 @@ class TestsCollection(TestsIntegration):
             1
         )
 
-
-class TestQueries(TestsIntegration):
-    def test_collection_query(self):
-        c = self.conn.collection
-        c.test.create()
-
-        doc1 = c.test.docs.create({"doc": 1})
-        doc2 = c.test.docs.create({"doc": 2})
-
-        cursor = c.query("FOR d IN test RETURN d", count=True)
-        assert_equal(len(cursor), 2)
-
-        for doc in cursor:
-            is_contain = False
-            for cdoc in [doc1, doc2]:
-                if cdoc == doc:
-                    is_contain = True
-                    break
-
-            assert_true(
-                is_contain,
-                "One of docs are not added to database: {0}".format(
-                    doc))
+        assert_equal(
+            len(self.conn.collection.test
+                .documents()
+                .offset(2)
+                .limit(1)),
+            0)
 
 
 # execute integrational tests only if `INTEGRATIONAL`
 # environemnt variable passed
 if 'INTEGRATION' not in os.environ:
     TestsCollection = None
-    TestQueries = None

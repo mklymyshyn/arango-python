@@ -3,7 +3,6 @@ import logging
 from .document import Documents
 from .edge import Edges
 from .index import Index
-from .cursor import Cursor
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
     InvalidCollection
 
@@ -47,12 +46,6 @@ class Collections(object):
         })
 
         return self.collections.get(name)
-
-    def query(self, *args, **kwargs):
-        """
-        Proceed query (AQL) to the Database
-        """
-        return Cursor(self.connection, *args, **kwargs)
 
     def rename_collection(self, collection, new_name):
         """
@@ -223,7 +216,9 @@ class Collection(object):
         Exactly the same as ``count`` but it's possible
         to use in more convenient way
 
-        .. code::
+        .. testcode::
+
+                c.test.create()
 
                 assert c.test.count() == len(c.test)
 
@@ -289,10 +284,7 @@ class Collection(object):
 
         Sample usage:
 
-        .. code::
-
-                from arango import create
-                c = create()
+        .. testcode::
 
                 c.test.create()
 

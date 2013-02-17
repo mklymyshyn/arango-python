@@ -2,7 +2,7 @@ from nose.tools import assert_equal, assert_not_equal, \
     assert_true, assert_false, raises
 
 
-from mock import Mock
+from mock import Mock, patch
 
 from .tests_base import TestsBase
 
@@ -154,6 +154,7 @@ class TestResultset(TestsBase):
         self.Base.prepare_resultset = prepare_resultset_mock
 
         self.rs = Resultset(base=self.Base)
+        self.rs.base._cursor = lambda *a, **k: range(3)
 
     def tearDown(self):
         pass
@@ -176,12 +177,6 @@ class TestResultset(TestsBase):
         assert_equal(
             [item for item in self.rs],
             self.data
-        )
-
-    def test_last_shortcut(self):
-        assert_equal(
-            self.rs.last,
-            self.data[-1]
         )
 
     def test_first_shortcut(self):

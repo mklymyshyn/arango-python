@@ -71,8 +71,8 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc1 = c.test.documents.create([1])
-        doc2 = c.test.documents.create([2])
+        doc1 = c.test.documents.create({"a": 1})
+        doc2 = c.test.documents.create({"a": 2})
 
         prev_count = int(c.test.documents.count)
 
@@ -92,14 +92,14 @@ class TestsDocument(TestsIntegration):
         logger.info("Creating collection 'test'")
         c.test.create()
 
-        doc = c.test.documents.create([1])
+        doc = c.test.documents.create({1: 1})
 
-        c.test.documents.update(doc, [2])
+        c.test.documents.update(doc, {2: 2})
 
         assert_equal(
-            c.test.documents().first.body,
-            [1, 2]
-        )
+            c.test.documents().first.body["1"], 1)
+        assert_equal(
+            c.test.documents().first.body["2"], 2)
 
         c.test.documents.delete(doc)
 
