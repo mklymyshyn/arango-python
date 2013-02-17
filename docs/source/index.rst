@@ -1,11 +1,6 @@
 ArangoDB Driver for Python
 ==========================
 
-.. warning::
-    This is **PRE ALPHA** release, so several required features
-    **are not supported**!
-
-
 Features support
 ----------------
 
