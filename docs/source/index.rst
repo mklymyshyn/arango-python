@@ -29,29 +29,26 @@ Library is in early alpha so it's not on PyPi yet. To install use `pip`::
 Usage example
 ~~~~~~~~~~~~~
 
-It's quite simple to start work with **ArangoDB**::
+It's quite simple to start work with **ArangoDB**:
+
+.. doctest::
 
     from arango import create
 
     # create connection to database
     voca = create()
-
     # create collection with name `test_collection`
     voca.test_collection.create()
-
     # create document
-    voca.test_collection.documents.create({
-        "sample_key": "sample_value"
-    })
-
+    voca.test_collection.documents.create({"sample_key": "sample_value"})
     # get first document
-    voca.test_collection.documents().first
-
+    doc = voca.test_collection.documents().first
     # get document body
-    voca.test_collection.documents().first.body
+    doc.body
 
-    # get value of key `sample_key`
-    voca.test_collection.documents().first.get("sample_key")
+    # get all documents in collection
+    for doc in voca.connection.query("FOR d in test_collection RETURN d"):
+      print doc.id
 
 
 Contents

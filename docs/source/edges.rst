@@ -49,6 +49,13 @@ specified during **Edge** creation
     # creating edge with custom data
     c.test.edges.create(from_doc, to_doc, {"custom": 1})
 
+.. warning::
+    Code below should be implemented by using ``AQL``.
+    Not implemented at the moment.
+
+
+.. testcode::
+
     # getting edge by document
     # c.test.edges(from_doc)
 
@@ -71,25 +78,15 @@ Basically via `edges` shortcut accessible **Edges Proxy** - Proxy object which h
 Below described basic method within ``Edges`` proxy:
 
 .. autoclass:: arango.edge.Edges
-    :members: create, delete, update, count
+    :members: create, delete, update
 
 
 Making queries
 ~~~~~~~~~~~~~~
 
-It's easy enough to making queries. Last line of :ref:`edges` example consist
-from simple Edges query::
-
-    ...
-
-    # getting with direction
-    c.test.edges(from_doc, direction="in")
-
-There's possible to specify ``direction`` of edges to:
-
- #. ``in``
- #. ``out``
- #. ``any``
+.. warning::
+    This functionality not implmented yet. Use **AQL**
+    to work with Edges.
 
 More details in :term:`Edges REST Api` documentation of **ArangoDB**
 
