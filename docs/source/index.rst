@@ -4,11 +4,19 @@ ArangoDB Driver for Python
 Features support
 ----------------
 
-Driver for Python is incomplete. It supports at the moment:
+Driver for Python is not entirely completed. It supports
 **Connections to ArangoDB with custom options**,
 **Collections**, **Documents**, **Indexes** **Cursors**
-and have partial support of **Edges**
+and partially **Edges**.
 
+.. _arangodb-description:
+
+  **ArangoDB** is an open-source database with a flexible data model
+  for documents, graphs, and key-values. Build high performance
+  applications using a convenient sql-like query language or
+  JavaScript/Ruby extensions.
+
+More details about **ArangoDB** on `official website <http://arangodb.org>`_
 
 Getting started
 ---------------

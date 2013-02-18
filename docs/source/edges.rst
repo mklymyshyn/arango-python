@@ -50,7 +50,7 @@ specified during **Edge** creation
     c.test.edges.create(from_doc, to_doc, {"custom": 1})
 
 .. warning::
-    Code below should be implemented by using ``AQL``.
+    Code below should be implemented by using ``AQL`` (:doc:`queries`).
     Not implemented at the moment.
 
 
@@ -85,8 +85,8 @@ Making queries
 ~~~~~~~~~~~~~~
 
 .. warning::
-    This functionality not implmented yet. Use **AQL**
-    to work with Edges.
+    This functionality not implmented yet. Use **AQL** -
+    :doc:`queries` section with custom wrapper to work with Edges.
 
 More details in :term:`Edges REST Api` documentation of **ArangoDB**
 

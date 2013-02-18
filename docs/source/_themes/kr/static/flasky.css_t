@@ -575,3 +575,27 @@ a:hover tt {
 .revsys-inline {
     display: none!important;
 }
+
+blockquote#arangodb-description {
+    font-style:italic;
+}
+
+.admonition.warning {
+    background-color:#FF470D;
+    color:#fff;
+    border-top:1px solid #343434;
+    border-bottom:1px solid #343434;
+    border:0;
+}
+
+.admonition.warning a:link,
+.admonition.warning a:active,
+.admonition.warning a:visited,
+.admonition.warning a:hover {
+    color:#fff;
+    border-bottom:1px dotted #fff;
+}
+.admonition.warning a:active,
+.admonition.warning a:hover {
+    border-bottom:1px solid #fff;
+}
