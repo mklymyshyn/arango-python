@@ -1,5 +1,5 @@
 
-.PHONY: coverage
+.PHONY: coverage doc
 .DEFAULT: raw
 
 -include Makefile.local

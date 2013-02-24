@@ -12,6 +12,8 @@ __all__ = ("RequestsClient",)
 
 logger = logging.getLogger("arango.requests")
 
+sess = requests.Session()
+
 
 class RequestsClient(RequestsBase):
     """
@@ -26,7 +28,7 @@ class RequestsClient(RequestsBase):
 
     @classmethod
     def get(cls, url, **kwargs):
-        r = requests.get(url, **cls._config)
+        r = sess.get(url, **cls._config)
 
         return cls.build_response(
             r.status_code,
@@ -39,7 +41,7 @@ class RequestsClient(RequestsBase):
         if data is None:
             data = ""
 
-        r = requests.post(url, data=data, **cls._config)
+        r = sess.post(url, data=data, **cls._config)
 
         return cls.build_response(
             r.status_code,
@@ -52,7 +54,7 @@ class RequestsClient(RequestsBase):
         if data is None:
             data = ""
 
-        r = requests.put(url, data=data, **cls._config)
+        r = sess.put(url, data=data, **cls._config)
 
         return cls.build_response(
             r.status_code,
@@ -62,7 +64,7 @@ class RequestsClient(RequestsBase):
 
     @classmethod
     def delete(cls, url, data=None):
-        r = requests.delete(url, **cls._config)
+        r = sess.delete(url, **cls._config)
 
         return cls.build_response(
             r.status_code,
