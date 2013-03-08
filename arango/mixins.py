@@ -15,9 +15,15 @@ class ComparsionMixin(object):
         if not issubclass(type(other), self.__class__):
             return -1
 
-        if (self.body is not None and other.body is not None and
-            set(self.body).symmetric_difference(other.body) not in
-                [self.IGNORE_KEYS, set([])]):
+        if (self.body == other.body and self._id == other._id and
+                self._rev == other._rev):
+            return 0
+
+        ignore_keys = lambda k: k not in self.IGNORE_KEYS
+
+        # compare keys only
+        if filter(ignore_keys, self.body.keys()) != \
+                filter(ignore_keys, other.body.keys()):
             return -1
 
         # compare bodies but ignore sys keys

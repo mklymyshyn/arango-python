@@ -69,8 +69,10 @@ Contents
    guidelines
 
 
-Platforms and Python versions
+Arango versions, Platforms and Python versions
 -----------------------------
+
+Supported versions of ArangoDB: **1.1x** and **1.2x**
 
 This release support *Python 2.7*, *PyPy 1.9*.
 

@@ -89,7 +89,7 @@ class Edge(ComparsionMixin):
     DELETE_EDGE_PATH = "/_api/edge/{0}"
     UPDATE_EDGE_PATH = "/_api/edge/{0}"
 
-    IGNORE_KEYS = set(["_rev", "_id", "_from", "_to"])
+    IGNORE_KEYS = set(["_rev", "_id", "_from", "_to", "_key"])
     LAZY_LOAD_HANDLERS = [
         "id", "rev", "body", "get", "update", "delete",
         "from_document", "to_document"

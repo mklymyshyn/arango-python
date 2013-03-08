@@ -136,7 +136,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
     READ_DOCUMENT_PATH = "/_api/document/{0}"
 
     LAZY_LOAD_HANDLERS = ["id", "rev", "body", "get", "update", "delete"]
-    IGNORE_KEYS = set(["_rev", "_id"])
+    IGNORE_KEYS = set(["_rev", "_id", "_key"])
 
     def __init__(self, collection=None,
                  id=None, rev=None,

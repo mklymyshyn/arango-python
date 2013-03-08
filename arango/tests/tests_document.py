@@ -189,7 +189,7 @@ class TestDocument(TestDocumentBase):
         assert_equal(doc.body[1], 2)
         assert_equal(doc.body[3], 4)
 
-    def test_document_comparsion(self):
+    def test_document_comparsion_arango11(self):
         doc1 = self.create_document({"value": 1})
         doc2 = self.create_document({"value": 1})
 
@@ -198,7 +198,17 @@ class TestDocument(TestDocumentBase):
         doc1.update({"_rev": 1, "_id": 2}, save=False)
         assert_equal(doc1, doc2)
 
+    def test_document_comparsion(self):
+        doc1 = self.create_document({"value": 1})
+        doc2 = self.create_document({"value": 1})
+
+        assert_equal(doc1, doc2)
+
+        doc1.update({"_rev": 1, "_id": 2, "_key": 3}, save=False)
+        assert_equal(doc1, doc2)
+
         doc1.update({"name": 1}, save=False)
+
         assert_not_equal(doc1, doc2)
 
         doc1 = self.create_document({"value": 1})

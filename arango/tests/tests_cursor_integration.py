@@ -46,11 +46,13 @@ class TestQueries(TestsIntegration):
 
         doc1 = c.test.docs.create({"doc": 1})
         doc2 = c.test.docs.create({"doc": 2})
+        self.wait()
 
         cursor = self.conn.query("FOR d IN test RETURN d", count=True)
         assert_equal(len(cursor), prev_len + 2)
 
         total = 0
+
         for doc in cursor:
             for cdoc in [doc1, doc2]:
                 if cdoc == doc:
