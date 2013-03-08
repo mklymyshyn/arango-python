@@ -3,6 +3,7 @@ import logging
 import unittest
 import time
 
+from nose import SkipTest
 from arango.core import Connection
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,9 @@ class TestsIntegration(unittest.TestCase):
     """
 
     def setUp(self):
+        if 'INTEGRATION' not in os.environ:
+            raise SkipTest
+
         self.conn = Connection()
 
         # enable verbose output for tests

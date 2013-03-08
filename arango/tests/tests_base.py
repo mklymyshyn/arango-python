@@ -1,6 +1,8 @@
+import os
 import types
 import unittest
 
+from nose import SkipTest
 from mock import patch, MagicMock
 from arango.clients import Client
 
@@ -15,6 +17,9 @@ class TestsBase(unittest.TestCase):
     methods = ["post", "put", "get", "delete"]
 
     def setUp(self):
+        if "NOSMOKE" in os.environ:
+            raise SkipTest
+
         for m in self.methods:
             setattr(self, m,
                     patch.object(Client, m,

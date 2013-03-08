@@ -1,5 +1,4 @@
 import logging
-import os
 
 from nose.tools import assert_equal, assert_true, \
     assert_not_equal
@@ -165,9 +164,3 @@ class TestsDocument(TestsIntegration):
                     break
 
             assert_true(flag)
-
-
-# execute integrational tests only if `INTEGRATIONAL`
-# environemnt variable passed
-if 'INTEGRATION' not in os.environ:
-    TestsDocument = None

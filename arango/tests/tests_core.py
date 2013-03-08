@@ -130,6 +130,7 @@ class TestResponse(TestsBase):
 
 class TestResultset(TestsBase):
     def setUp(self):
+        super(TestResultset, self).setUp()
         self.Base = Mock()
         self.data = list(range(3))
 

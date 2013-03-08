@@ -1,8 +1,7 @@
-import os
 import logging
 
 
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal
 from arango.cursor import Cursor
 
 from .tests_integraion_base import TestsIntegration
@@ -62,9 +61,3 @@ class TestQueries(TestsIntegration):
         assert_equal(
             total, 2,
             "One of docs are not added to database")
-
-# execute integrational tests only if `INTEGRATIONAL`
-# environemnt variable passed
-if 'INTEGRATION' not in os.environ:
-    TestsCursor = None
-    TestQueries = None

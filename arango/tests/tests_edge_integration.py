@@ -1,7 +1,6 @@
 import logging
-import os
 
-from nose.tools import assert_equal, assert_not_equal, raises
+from nose.tools import assert_equal, raises
 
 from arango.collection import Collection
 
@@ -95,8 +94,3 @@ class TestsEdge(TestsIntegration):
             to_doc=new_doc,
             save=True
         )
-
-# execute integrational tests only if `INTEGRATIONAL`
-# environemnt variable passed
-if 'INTEGRATION' not in os.environ:
-    TestsEdge = None

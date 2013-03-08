@@ -1,5 +1,4 @@
 import logging
-import os
 
 from nose.tools import assert_equal, assert_true
 
@@ -62,9 +61,3 @@ class TestsIndexIntegration(TestsIntegration):
 
         assert_true(self.cl.index.delete(key))
         assert_equal(len(self.cl.index()), count - 1)
-
-
-# execute integrational tests only if `INTEGRATIONAL`
-# environemnt variable passed
-if 'INTEGRATION' not in os.environ:
-    TestsIndexIntegration = None

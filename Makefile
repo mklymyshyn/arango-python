@@ -2,6 +2,7 @@
 .PHONY: coverage doc tests test fast one
 .DEFAULT: raw
 
+CLIENTS=urllib2client.Urllib2Client pycurlclient.PyCurlClient
 -include Makefile.local
 
 
@@ -12,12 +13,12 @@ coverage:
 		--cover-html-dir=./coverage \
 		--with-coverage --cover-package=arango
 
-tests:
-	INTEGRATION=1 nosetests -v
+tests: smoke
+	$(foreach client,$(CLIENTS),USE_CLIENT=arango.clients.$(client) INTEGRATION=1 NOSMOKE=1 nosetests -v; )
 
 test: tests
 
-fast:
+smoke:
 	nosetests -v
 
 one:
