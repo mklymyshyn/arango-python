@@ -47,8 +47,10 @@ For more details please read `Documentation <http://arangodb-python-driver.readt
 
 Supported Python interpreters and versions:
 
+ - cPython 3.3
  - cPython 2.7
  - PyPy 1.9
 
+Supported **ArangoDB versions**: *1.1x* and *1.2x*
 
 Developed by Maksym Klymyshyn

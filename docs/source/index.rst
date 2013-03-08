@@ -74,9 +74,7 @@ Arango versions, Platforms and Python versions
 
 Supported versions of ArangoDB: **1.1x** and **1.2x**
 
-This release support *Python 2.7*, *PyPy 1.9*.
-
-Next in chain is *Python 3.3*
+This release support **Python 3.3**, *Python 2.7*, *PyPy 1.9*.
 
 
 
