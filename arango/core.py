@@ -1,5 +1,10 @@
 import logging
-import urllib
+
+try:
+    from urllib import urlencode
+except ImportError:
+    # python3 fix
+    from urllib.parse import urlencode
 
 from .utils import json
 from .clients import Client
@@ -117,7 +122,7 @@ class Connection(object):
 
     def qs(self, path, **params):
         """Encode params  as GET argumentd and concat it with path"""
-        return "{0}?{1}".format(path, urllib.urlencode(params))
+        return "{0}?{1}".format(path, urlencode(params))
 
     @property
     def collection(self):
@@ -155,7 +160,7 @@ class Response(dict):
             if expect_raw is False:
                 self.update({k: v
                              for k, v in
-                             json.loads(response.text).iteritems()})
+                             json.loads(response.text).items()})
 
         except (TypeError, ValueError) as e:
             msg = "Can't parse response from ArangoDB:"\

@@ -35,7 +35,7 @@ class TestsIndexIntegration(TestsIntegration):
         index = self.cl.index.create(["name"])
 
         assert_equal(
-            index.indexes.values()[0]["fields"],
+            list(index.indexes.values())[0]["fields"],
             ["name"])
 
     def test_index_list(self):
@@ -49,14 +49,15 @@ class TestsIndexIntegration(TestsIntegration):
     def test_index_get(self):
         self.cl.index.create(["value"])
         ids = self.cl.index()
-        key = ids.keys()[0]
+        key = list(ids.keys())[0]
 
         index = self.cl.index.get(key)
 
         assert_equal(str(index.get("id")), str(key))
 
     def test_index_delete(self):
-        key = self.cl.index.create(["value"]).indexes.values()[0]["id"]
+        key = list(
+            self.cl.index.create(["value"]).indexes.values())[0]["id"]
         count = len(self.cl.index())
 
         assert_true(self.cl.index.delete(key))

@@ -12,6 +12,6 @@ Client = Urllib2Client
 try:
     from .pycurlclient import PyCurlClient
     Client = PyCurlClient
-except Exception, e:
+except Exception as e:
     logger.warning(
-        u"Sorry, can't import PyCurlClient. Reason: %s", unicode(e))
+        u"Sorry, can't import PyCurlClient. Reason: %s", str(e))

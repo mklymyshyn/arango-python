@@ -30,7 +30,7 @@ class TestsCursor(TestsIntegration):
         cursor = self.cursor("FOR d IN test RETURN d", count=True)
 
         try:
-            print [repr(cr) for cr in cursor]
+            print([repr(cr) for cr in cursor])
         except Exception:
             logger.error("Can't print", exc_info=True)
             raise

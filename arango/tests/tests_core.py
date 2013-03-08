@@ -131,7 +131,7 @@ class TestResponse(TestsBase):
 class TestResultset(TestsBase):
     def setUp(self):
         self.Base = Mock()
-        self.data = range(3)
+        self.data = list(range(3))
 
         def iterate_mock(rs):
             for item in rs.data:
@@ -154,7 +154,7 @@ class TestResultset(TestsBase):
         self.Base.prepare_resultset = prepare_resultset_mock
 
         self.rs = Resultset(base=self.Base)
-        self.rs.base._cursor = lambda *a, **k: range(3)
+        self.rs.base._cursor = lambda *a, **k: list(range(3))
 
     def tearDown(self):
         pass
@@ -229,7 +229,7 @@ class TestResultset(TestsBase):
         )
 
     def test_repr_large_resultset(self):
-        dataset = range(self.rs.max_repr_items * 2)
+        dataset = list(range(self.rs.max_repr_items * 2))
 
         def iterate_large_dataset(rs):
             for item in dataset:

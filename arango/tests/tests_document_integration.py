@@ -110,7 +110,7 @@ class TestsDocument(TestsIntegration):
         assert_equal(
             dict(
                 [(key, val) for key, val in
-                    c.test.documents().first.body.iteritems()
+                    c.test.documents().first.body.items()
                     if key in ["name", "position"]]
             ),
             {
@@ -156,7 +156,7 @@ class TestsDocument(TestsIntegration):
             for src in docs:
                 flag = False
 
-                for key, val in src.iteritems():
+                for key, val in src.items():
                     if doc.body.get(key) == val:
                         flag = True
                         break
