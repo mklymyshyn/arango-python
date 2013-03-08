@@ -162,20 +162,20 @@ class Edge(ComparsionMixin):
 
         return self._to_document
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare two Edges in same way as Document and
         additionally compare FROM and TO documents
         """
 
-        if super(Edge, self).__cmp__(other) != 0:
-            return -1
+        if super(Edge, self).__eq__(other) is False:
+            return False
 
         if (self._from == other._from and
                 self._to == other._to):
-            return 0
+            return True
 
-        return -1
+        return False
 
     def __repr__(self):
         return "<ArangoDB Edge: Id {0}/{1}, From {2} to {3}>".format(

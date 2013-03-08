@@ -90,6 +90,8 @@ class Cursor(object):
 
         raise StopIteration
 
+    __next__ = next
+
     def bulk(self):
         """
         Getting initial or next bulk of results from Database

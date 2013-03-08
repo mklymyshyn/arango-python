@@ -7,39 +7,36 @@ class ComparsionMixin(object):
     """
     Mixin to help compare two instances
     """
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare two items
         """
 
         if not issubclass(type(other), self.__class__):
-            return -1
+            return False
 
         if (self.body == other.body and self._id == other._id and
                 self._rev == other._rev):
-            return 0
+            return True
 
-        ignore_keys = lambda k: k not in self.IGNORE_KEYS
+        keys = lambda o: [key for key in o.body.keys()
+                          if key not in self.IGNORE_KEYS]
 
         # compare keys only
-        if filter(ignore_keys, self.body.keys()) != \
-                filter(ignore_keys, other.body.keys()):
-            return -1
+        if keys(self) != keys(other):
+            return False
 
         # compare bodies but ignore sys keys
         if (self.body is not None and other.body is not None):
-            for key in other.body.keys():
-                if key in self.IGNORE_KEYS:
-                    continue
-
+            for key in keys(other):
                 if self.body.get(key, None) != other.body.get(key, None):
-                    return -1
+                    return False
 
         if (self._id is not None and self._rev is not None and
-                self._id != other._id or str(self._rev) != str(other._rev)):
-            return -1
+                (self._id != other._id or str(self._rev) != str(other._rev))):
+            return False
 
-        return 0
+        return True
 
 
 class LazyLoadMixin(object):

@@ -1,6 +1,4 @@
 import logging
-import os
-import time
 
 from nose.tools import assert_equal, assert_false, assert_true, \
     assert_not_equal
@@ -192,9 +190,3 @@ class TestsCollection(TestsIntegration):
                 .offset(2)
                 .limit(1)),
             0)
-
-
-# execute integrational tests only if `INTEGRATIONAL`
-# environemnt variable passed
-if 'INTEGRATION' not in os.environ:
-    TestsCollection = None

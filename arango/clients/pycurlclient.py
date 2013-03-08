@@ -1,4 +1,9 @@
-import StringIO
+try:
+    import StringIO
+except ImportError:
+    # python3
+    from io import StringIO
+
 import pycurl
 
 from .base import RequestsBase

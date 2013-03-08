@@ -1,7 +1,7 @@
 import copy
 
 from nose.tools import assert_equal, assert_false, assert_true, \
-                       raises
+    raises
 
 from mock import Mock
 
@@ -44,14 +44,9 @@ class TestComparsion(TestsBase):
         )
 
     def test_other_none(self):
-        assert_equal(
-            self.data.__cmp__(None),
-            -1
-        )
+        assert_equal(self.data.__eq__(None), False)
 
-        assert_false(
-            self.data == None
-        )
+        assert_false(self.data is None)
 
     def test_compare_plain(self):
         data2 = DummyDataType(
@@ -63,10 +58,7 @@ class TestComparsion(TestsBase):
             test=None
         )
 
-        assert_equal(
-            self.data.__cmp__(data2),
-            -1
-        )
+        assert_equal(self.data.__eq__(data2), False)
 
     def test_ignore_keys(self):
         data = DummyDataType(
@@ -90,7 +82,7 @@ class TestComparsion(TestsBase):
             "name": 2
         })
 
-        assert_equal(data.__cmp__(self.data), -1)
+        assert_equal(data.__eq__(self.data), False)
         assert_false(data == self.data)
 
 
@@ -103,8 +95,7 @@ class TestLazyLoad(TestsBase):
             body={
                 "name": 1
             },
-            test=None
-        )
+            test=None)
 
         self.data.lazy_loader = Mock()
         self.data._lazy_loaded = False
