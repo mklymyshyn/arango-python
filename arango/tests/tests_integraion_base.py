@@ -28,6 +28,17 @@ class TestsIntegration(unittest.TestCase):
         if "DEBUG_HTTP" in os.environ:
             self.conn.client.DEBUG = True
 
+        if "USE_CLIENT" in os.environ:
+            module_path = os.environ["USE_CLIENT"].split(".")
+            client_cls = module_path.pop()
+
+            module = __import__(".".join(module_path))
+
+            for c_module in module_path[1:]:
+                module = getattr(module, c_module)
+
+            self.conn.client = getattr(module, client_cls)
+
     def tearDown(self):
         c = self.conn
 
