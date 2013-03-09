@@ -16,7 +16,8 @@ and partially **Edges**.
   applications using a convenient sql-like query language or
   JavaScript/Ruby extensions.
 
-More details about **ArangoDB** on `official website <http://arangodb.org>`_
+More details about **ArangoDB** on `official website <http://arangodb.org>`_.
+Some `blog posts <http://blog.klymyshyn.com/search/label/arangodb>`_ about this driver.
 
 Getting started
 ---------------
