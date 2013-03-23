@@ -2,7 +2,7 @@ import re
 
 from .tests_base import TestsBase
 
-from arango.aql import AQLQuery
+from arango.aql import AQLQuery, F
 # from nose.tools import assert_equal, assert_true, raises
 from nose.tools import assert_equal
 
@@ -69,8 +69,58 @@ class TestAqlGeneration(TestsBase):
                 FOR obj IN user
                     FOR obj1 IN membership
                 RETURN {"member": obj1, "user": obj}
-            """)
-        )
+            """))
 
     def test_sub_queries_in_return(self):
-        pass
+        q1 = AQLQuery(collection="user")
+        q2 = AQLQuery(collection="membership")
+
+        assert_equal(
+            CLEANUP(q1.result(user="obj",
+                              members=F.LENGTH(q2))
+                      .build_query()),
+            CLEANUP("""
+                FOR obj IN user
+                RETURN {"user": obj,
+                        "members": LENGTH(
+                            FOR obj IN membership RETURN obj )}
+            """))
+
+    def test_let_expr(self):
+        q = AQLQuery(collection="user")
+        q.let("name", "u.first_name")\
+         .let("email", F.LENGTH("u.email"))\
+         .result(name="name", email="email")\
+
+        assert_equal(
+            CLEANUP(q.build_query()),
+            CLEANUP("""
+                FOR obj IN user
+                    LET name = u.first_name
+                    LET email = LENGTH(u.email)
+                RETURN {"name": name, "email": email}
+            """))
+
+    def test_let_subquery_expr(self):
+        m = AQLQuery(collection="memberships")
+        c = AQLQuery(collection="memberships")
+        q = AQLQuery(collection="user")
+        q.let("membership", m.iter("m1").result(
+            within="m1.within",
+            count=F.LENGTH(c.iter("m")
+                            .result(groups="m.groups"))))\
+         .result(name="name", email="email")
+
+        assert_equal(
+            CLEANUP(q.build_query()),
+            CLEANUP(u"""
+                FOR obj IN user
+                    LET membership = (
+                        FOR m1 IN memberships
+                        RETURN {"count": LENGTH(
+                                FOR m IN memberships
+                                RETURN
+                                {"groups": m.groups} ),
+                         "within": m1.within} )
+                RETURN {"name": name, "email": email}
+            """))

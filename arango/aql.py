@@ -1,12 +1,37 @@
 import logging
 
 
-from .utils import json
-
-
-__all__ = ("AQLQuery",)
+__all__ = ("AQLQuery", "F")
 
 logger = logging.getLogger(__name__)
+
+
+class Func(object):
+    """
+    AQL Function instance
+    """
+    def __init__(self, name, *args, **kwargs):
+        self.name = name
+        # TODO: here we need to improve
+        # providing details
+        self.expr = args[0]
+
+    def build_query(self):
+        if issubclass(type(self.expr), AQLQuery):
+            return u"{}({})".format(self.name, self.expr.build_query())
+
+        return u"{}({})".format(self.name, self.expr)
+
+
+class FuncFactory(object):
+    """
+    AQL Function factory
+    """
+    def __getattribute__(self, name):
+        def f(*args, **kwargs):
+            return Func(name, *args, **kwargs)
+
+        return f
 
 
 class AQLQuery(object):
@@ -56,6 +81,7 @@ class AQLQuery(object):
         return self
 
     def let(self, name, value):
+        self.let_expr.append([name, value])
         return self
 
     def filter(self, *args):
@@ -93,18 +119,23 @@ class AQLQuery(object):
         """
         Build expression
         """
+
         return_expr = self.return_expr or self.for_var
+
         if isinstance(return_expr, dict):
             pairs = []
             for key, expr in self.return_expr.items():
                 # support of nested queries
-                if issubclass(type(expr), AQLQuery):
+                if issubclass(type(expr), (AQLQuery, Func)):
                     expr = expr.build_query()
 
                 pairs.append('"{}": {}'.format(key, expr))
             return "{{{}}}".format(", ".join(pairs))
         elif return_expr and isinstance(return_expr, (tuple, list)):
             return_expr = return_expr[0]
+
+        if issubclass(type(return_expr), Func):
+            return_expr = return_expr.build_query()
 
         return return_expr
 
@@ -114,6 +145,9 @@ class AQLQuery(object):
         Build FOR expression
         """
         for_expr = self.for_expr or self.collection
+
+        if issubclass(type(for_expr), Func):
+            for_expr = for_expr.build_query()
 
         return for_expr
 
@@ -134,6 +168,20 @@ class AQLQuery(object):
 
         return "\n".join(queries)
 
+    @property
+    def expr_let(self):
+        pairs = []
+        for name, expr in self.let_expr:
+            if issubclass(type(expr), Func):
+                expr = expr.build_query()
+            elif issubclass(type(expr), AQLQuery):
+                expr = "({})".format(expr.build_query())
+
+            pairs.append(u"LET {name} = {expr}".format(
+                name=name, expr=expr))
+
+        return u"\n".join(pairs)
+
     def build_nested_query(self, n):
         """
         Build simplified query ONLY as nested:
@@ -152,6 +200,7 @@ class AQLQuery(object):
         return u"""
             FOR {for_var} IN
                 {for_expr}
+                {let_expr}
                 {for_nested}
             RETURN
                 {return_expr}
@@ -159,4 +208,8 @@ class AQLQuery(object):
             for_var=self.for_var,
             for_expr=self.expr_for,
             for_nested=self.expr_nested,
+            let_expr=self.expr_let,
             return_expr=self.expr_return)
+
+
+F = FuncFactory()
