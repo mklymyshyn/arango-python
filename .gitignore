@@ -7,3 +7,5 @@ docs/build/*
 dist/*
 Makefile.local
 urllib2_pypy.py
+*.rc
+.venv

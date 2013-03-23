@@ -62,7 +62,7 @@ class Cursor(object):
 
         # has more batch or not. By default it's true
         # to fetch at least first dataset/response
-        self._hasMore = True
+        self._has_more = True
 
         # data from current batch
         self._dataset = []
@@ -84,7 +84,7 @@ class Cursor(object):
             item = self._dataset.pop(0)
             return self.wrapper(self.connection, item)
         except IndexError:
-            if self._hasMore:
+            if self._has_more:
                 self.bulk()
                 return self.next()
 
@@ -112,7 +112,7 @@ class Cursor(object):
             )
 
         # TODO: handle errors
-        self._hasMore = response.get("hasMore", False)
+        self._has_more = response.get("hasMore", False)
         self._count = int(response.get("count", 0))
         self._dataset = response["result"] if "result" in response else []
 
