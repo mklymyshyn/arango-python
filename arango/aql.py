@@ -302,7 +302,7 @@ class AQLQuery(object):
         if not self.sort_expr:
             return u""
 
-        return u"SORT {}".format(", ".join(self.sort_expr))
+        return u"SORT {}\n".format(", ".join(self.sort_expr))
 
     @property
     def expr_limit(self):
@@ -312,9 +312,9 @@ class AQLQuery(object):
             return u""
 
         if offset is None:
-            return u"LIMIT {}".format(count)
+            return u"LIMIT {}\n".format(count)
 
-        return u"LIMIT {}, {}".format(offset, count)
+        return u"LIMIT {}, {}\n".format(offset, count)
 
     def build_nested_query(self, n):
         """
@@ -325,7 +325,7 @@ class AQLQuery(object):
         if for_var == "obj":
             for_var = "obj{}".format(n)
 
-        return u"FOR {for_var} IN {for_expr}".format(
+        return u"FOR {for_var} IN {for_expr}\n".format(
             for_var=for_var,
             for_expr=self.expr_for)
 
@@ -338,12 +338,8 @@ class AQLQuery(object):
 
         query = u"""
             FOR {for_var} IN {for_expr}
-                {for_nested}
-                {let_expr}
-                {filter_expr}
-                {collect_expr}
-                {sort_expr}
-                {limit_expr}
+                {for_nested}{let_expr}{filter_expr}
+                {collect_expr}{sort_expr}{limit_expr}
             RETURN
                 {return_expr}
         """.format(
@@ -368,7 +364,11 @@ class AQLQuery(object):
         self.cursor_args.update({"bindVars": self.bind_vars})
 
         return Cursor(
-            self.connection, self.build_query, **self.cursor_args)
+            self.connection, self.build_query(), **self.cursor_args)
+
+    def __repr__(self):
+        return "<AQLQuery: {}>".format(self.build_query())
+
 
 F = FuncFactory()
 V = var_factory

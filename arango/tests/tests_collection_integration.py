@@ -27,7 +27,7 @@ class TestsCollection(TestsIntegration):
         c = self.conn
 
         logger.info("Creationg new collection 'test'")
-
+        c.collection.test.delete()
         created = c.collection.test.create()
         self.wait()
         assert_true(created.cid is not None)

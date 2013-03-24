@@ -15,6 +15,7 @@ coverage:
 
 tests: smoke
 	$(foreach client,$(CLIENTS),USE_CLIENT=arango.clients.$(client) INTEGRATION=1 NOSMOKE=1 nosetests -v; )
+	$(MAKE) -C docs doctest
 
 test: tests
 

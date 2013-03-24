@@ -1,7 +1,39 @@
 .. _queries:
 
-Making queries with AQL
------------------------
+AQL Query Buidler
+-----------------
+
+Query Builder is abstraction layer around **AQL**
+to work with it in more *pythonic* way.
+
+Simplest start point is to use
+:py:attr:`arango.collection.Collection.query`.
+
+Simple example:
+
+.. testcode::
+
+    from arango import collection as c
+
+    # create collection
+    c.test.create()
+
+    c.test.docs.create({"name": "John", "email": "john@example.com"})
+    c.test.docs.create({"name": "Jane", "email": "jane@example.com"})
+
+    c.test.query.filter("name == 'John'").build_query()
+
+will generate AQL query::
+
+    FOR obj IN test
+        FILTER name == 'John'
+    RETURN
+        obj
+
+
+
+Making raw queries with AQL
+---------------------------
 
 Now it's possible to querieng database by
 using :term:`Arango Query Language (AQL)`.
@@ -20,8 +52,8 @@ not implemented in driver.
 .. autoclass:: arango.cursor.Cursor
 
 
-Custom data wrapper
-~~~~~~~~~~~~~~~~~~~
+Custom data wrapper for raw queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It's not necessary to wrap all documents within
 ``Document`` object. ``Cursor`` do it by default
@@ -35,7 +67,7 @@ but you can provide custom wrapper by overriding
     instnace
   - ``item`` - dictionary with data provided from ArangoDB query
 
-.. doctest::
+.. testcode::
 
     from arango import c
 
@@ -46,4 +78,4 @@ but you can provide custom wrapper by overriding
 
     # create connection to database
     for item in c.query("FOR d in test RETURN d", wrapper=wrapper):
-        print item
+        item

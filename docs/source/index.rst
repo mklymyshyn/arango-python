@@ -51,7 +51,7 @@ It's quite simple to start work with **ArangoDB**:
     doc.body
 
     # get all documents in collection
-    for doc in voca.connection.query("FOR d in test_collection RETURN d"):
+    for doc in voca.test_collection.query.execute():
       print doc.id
 
 
