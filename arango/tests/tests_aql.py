@@ -2,12 +2,24 @@ import re
 
 from .tests_base import TestsBase
 
-from arango.aql import AQLQuery, F
-# from nose.tools import assert_equal, assert_true, raises
+from arango.aql import AQLQuery, F, V
 from nose.tools import assert_equal
 
 
-CLEANUP = lambda s: re.sub(r"\s+", " ", s).strip()
+def CLEANUP(s):
+    """
+    Normalize spaces in queries
+    """
+
+    REPLACEMENTS = (
+        (r"\(\s*", "("),
+        (r"\s*\)", ")"),
+        (r"\s*([\{\}])\s*", "\\1"),
+        (r"\s+", " "))
+
+    for ex, rpl in REPLACEMENTS:
+        s = re.sub(ex, rpl, s, flags=re.S | re.M)
+    return s.strip()
 
 
 class TestAqlGeneration(TestsBase):
@@ -180,9 +192,11 @@ class TestAqlGeneration(TestsBase):
             CLEANUP(u"""
                 FOR u IN user
                 COLLECT emails = u.email INTO g
-                RETURN {"u": u, "g": MAX(
-                    FOR c IN g RETURN c
-                )}
+                RETURN {
+                    "u": u, "g": MAX(
+                        FOR c IN g RETURN c
+                    )
+                }
             """))
 
     def test_sort(self):
@@ -224,3 +238,53 @@ class TestAqlGeneration(TestsBase):
                 LIMIT 100, 10
                 RETURN u
             """))
+
+    def test_function_factory(self):
+        assert_equal(
+            F.LENGTH("a").build_query(),
+            "LENGTH(a)")
+
+        assert_equal(
+            F.PATH("a", "b", "c").build_query(),
+            "PATH(a, b, c)")
+
+        assert_equal(
+            CLEANUP(F.PATH("a", "b", "c").build_query()),
+            "PATH(a, b, c)")
+
+        assert_equal(
+            CLEANUP(F.PATH("a", "b", "c").build_query()),
+            CLEANUP(F.PATH(V("a"), V("b"), V("c")).build_query()))
+
+        assert_equal(
+            CLEANUP(F.MERGE(
+                {"user1": {"name": "J"}},
+                {"user2": {"name": "T"}}).build_query()),
+            CLEANUP(u"""
+                MERGE(
+                    {"user1": {"name": "J"}},
+                    {"user2": {"name": "T"}})
+            """))
+
+        assert_equal(
+            CLEANUP(F.MERGE(
+                {"user1": {"name": V("u.name")}},
+                {"user2": {"name": "T"}}).build_query()),
+            CLEANUP(u"""
+                MERGE(
+                    {"user1": {"name": u.name}},
+                    {"user2": {"name": "T"}})
+            """))
+
+    def test_bind(self):
+        q = AQLQuery(collection="user")
+
+        assert_equal(
+            q.bind(**{"data": "test"}).execute().bindVars,
+            {"data": "test"})
+
+    def test_cursor_args(self):
+        q = AQLQuery(collection="user")
+        assert_equal(
+            q.cursor(batchSize=1).execute().batchSize,
+            1)

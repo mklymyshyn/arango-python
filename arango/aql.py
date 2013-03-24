@@ -1,9 +1,21 @@
 import logging
 
+from .cursor import Cursor
 
-__all__ = ("AQLQuery", "F")
+__all__ = ("AQLQuery", "F", "V")
 
 logger = logging.getLogger(__name__)
+
+
+class Variable(object):
+    """
+    AQL Variable
+    """
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "<AQL Variable: {}>".format(self.value)
 
 
 class Func(object):
@@ -12,17 +24,59 @@ class Func(object):
     """
     def __init__(self, name, *args, **kwargs):
         self.name = name
-        # TODO: here we need to improve
-        # providing details when multiple keywords or
-        # structures are provided.
-        # TODO: covert any nested elements to proper AQL
-        self.expr = args[0]
+        self.args = args
+
+    def proceed_list(self, l):
+        """
+        Process all arguments of Function
+        """
+        result = []
+
+        for item in l:
+            if isinstance(item, dict):
+                result.append(self.proceed_dict(item))
+                continue
+            if issubclass(type(item), AQLQuery):
+                result.append(item.build_query())
+                continue
+            if issubclass(type(item), Variable):
+                result.append(item.value)
+                continue
+
+            result.append(item)
+
+        return result
+
+    def proceed_dict(self, d):
+        """
+        Process all arguments which is dict
+        """
+        pairs = []
+
+        for key, val in d.items():
+            if isinstance(val, (list, tuple)):
+                val = self.proceed_list(val)
+            elif isinstance(val, dict):
+                val = self.proceed_dict(val)
+            elif issubclass(type(val), AQLQuery):
+                val = val.build_query()
+            elif issubclass(type(val), Variable):
+                val = val.value
+            else:
+                val = "\"{}\"".format(val)
+
+            pairs.append("\"{name}\": {value}".format(
+                name=key, value=val))
+
+        return "{{{}}}".format(", ".join(pairs))
 
     def build_query(self):
-        if issubclass(type(self.expr), AQLQuery):
-            return u"{}({})".format(self.name, self.expr.build_query())
+        """
+        Proceed list of arguments
+        """
 
-        return u"{}({})".format(self.name, self.expr)
+        return u"{}({})".format(self.name, u", ".join(
+            self.proceed_list(self.args)))
 
 
 class FuncFactory(object):
@@ -36,12 +90,18 @@ class FuncFactory(object):
         return f
 
 
+def var_factory(name):
+    return Variable(name)
+
+
 class AQLQuery(object):
     """
     An abstraction layer to generate simple AQL queries.
     """
-    def __init__(self, collection=None, no_cache=False):
+    def __init__(self, connection=None, collection=None, no_cache=False):
         self.collection = collection
+        self.connection = connection
+
         self.let_expr = []
         self.for_var = "obj"
         self.for_expr = None
@@ -52,9 +112,14 @@ class AQLQuery(object):
         self.nested_expr = []
         self.return_expr = None
 
-        self.bind = {}
+        self.bind_vars = {}
         self._built_query = None
         self._no_cache = no_cache
+        self.cursor_args = {}
+
+    def cursor(self, **kwargs):
+        self.cursor_args = kwargs
+        return self
 
     def iter(self, name):
         self.for_var = name
@@ -126,7 +191,7 @@ class AQLQuery(object):
     def bind(self, **kwargs):
         """
         """
-        self.bind = kwargs
+        self.bind_vars.update(kwargs)
         return self
 
     def result(self, *args, **kwargs):
@@ -297,8 +362,13 @@ class AQLQuery(object):
         return query
 
     def execute(self):
-        # TODO: create cursor
-        # TODO: build query
-        pass
+        """
+        Execute query: create cursor so on
+        """
+        self.cursor_args.update({"bindVars": self.bind_vars})
+
+        return Cursor(
+            self.connection, self.build_query, **self.cursor_args)
 
 F = FuncFactory()
+V = var_factory

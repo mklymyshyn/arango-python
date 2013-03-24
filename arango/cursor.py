@@ -70,6 +70,13 @@ class Cursor(object):
         # total count of results, extracted from Database
         self._count = 0
 
+    def bind(self, bind_vars):
+        """
+        Bind variables to the cursor
+        """
+        self.bindVars = bind_vars
+        return self
+
     def __iter__(self):
         return self
 
