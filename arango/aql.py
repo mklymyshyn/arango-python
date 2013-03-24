@@ -13,7 +13,9 @@ class Func(object):
     def __init__(self, name, *args, **kwargs):
         self.name = name
         # TODO: here we need to improve
-        # providing details
+        # providing details when multiple keywords or
+        # structures are provided.
+        # TODO: covert any nested elements to proper AQL
         self.expr = args[0]
 
     def build_query(self):
@@ -37,24 +39,8 @@ class FuncFactory(object):
 class AQLQuery(object):
     """
     An abstraction layer to generate simple AQL queries.
-
-    Usage::
-
-        conn.u.iter("u")
-              .over("PATHS(a, b, c)")
-              .let("friends",
-                   friends.iter("f")
-                          .filter("u.id == f.userId"))
-              .let("memberships",
-                   memberships.iter("m")
-                              .filter("u.id == m.userId"))
-              .provide(user="u",
-                       friends="friends",
-                       numFriends="LENGTH(friends)",
-                       memberShips="memberships")
-
     """
-    def __init__(self, collection=None):
+    def __init__(self, collection=None, no_cache=False):
         self.collection = collection
         self.let_expr = []
         self.for_var = "obj"
@@ -62,17 +48,25 @@ class AQLQuery(object):
         self.filter_expr = []
         self.collect_expr = []
         self.sort_expr = []
-        self.limit_expr = None
+        self.limit_expr = None, None
         self.nested_expr = []
         self.return_expr = None
 
         self.bind = {}
+        self._built_query = None
+        self._no_cache = no_cache
 
     def iter(self, name):
         self.for_var = name
         return self
 
     def over(self, expression):
+        """
+        Implementation of FOR operation::
+
+            FOR variable-name IN expression
+
+        """
         self.for_expr = expression
         return self
 
@@ -81,22 +75,57 @@ class AQLQuery(object):
         return self
 
     def let(self, name, value):
-        self.let_expr.append([name, value])
+        """
+        LET operation::
+
+            LET variable-name = expression
+
+        """
+        self.let_expr.append((name, value))
         return self
 
-    def filter(self, *args):
+    def filter(self, condition):
+        """
+        FILTER operation::
+
+            FILTER a==b && c==d
+
+        """
+        self.filter_expr.append(condition)
         return self
 
-    def collect(self, *args, **kwargs):
+    def collect(self, *pairs, **kwargs):
+        """
+        COLLECT operation::
+
+            COLLECT variable-name = expression
+            COLLECT variable-name = expression INTO groups
+
+        """
+
+        if len(pairs) % 2 != 0:
+            raise ValueError(
+                u"Arguments should be pairs variable-name and expression")
+
+        into = kwargs.get("into")
+        self.collect_expr.append((pairs, into))
         return self
 
     def sort(self, *args):
+        """
+        """
+        self.sort_expr.extend(args)
         return self
 
-    def limit(self, count=0, offset=0):
+    def limit(self, count, offset=None):
+        """
+        """
+        self.limit_expr = count, offset
         return self
 
     def bind(self, **kwargs):
+        """
+        """
         self.bind = kwargs
         return self
 
@@ -114,6 +143,18 @@ class AQLQuery(object):
         self.return_expr = args or kwargs.get("fields") or kwargs
         return self
 
+    def process_expr(self, expr, parentheses=True):
+        if issubclass(type(expr), Func):
+            return expr.build_query()
+
+        if issubclass(type(expr), AQLQuery):
+            if parentheses:
+                return u"({})".format(expr.build_query())
+
+            return expr.build_query()
+
+        return expr
+
     @property
     def expr_return(self):
         """
@@ -125,10 +166,7 @@ class AQLQuery(object):
         if isinstance(return_expr, dict):
             pairs = []
             for key, expr in self.return_expr.items():
-                # support of nested queries
-                if issubclass(type(expr), (AQLQuery, Func)):
-                    expr = expr.build_query()
-
+                expr = self.process_expr(expr)
                 pairs.append('"{}": {}'.format(key, expr))
             return "{{{}}}".format(", ".join(pairs))
         elif return_expr and isinstance(return_expr, (tuple, list)):
@@ -141,15 +179,9 @@ class AQLQuery(object):
 
     @property
     def expr_for(self):
-        """
-        Build FOR expression
-        """
         for_expr = self.for_expr or self.collection
 
-        if issubclass(type(for_expr), Func):
-            for_expr = for_expr.build_query()
-
-        return for_expr
+        return self.process_expr(for_expr)
 
     @property
     def expr_nested(self):
@@ -172,15 +204,52 @@ class AQLQuery(object):
     def expr_let(self):
         pairs = []
         for name, expr in self.let_expr:
-            if issubclass(type(expr), Func):
-                expr = expr.build_query()
-            elif issubclass(type(expr), AQLQuery):
-                expr = "({})".format(expr.build_query())
-
             pairs.append(u"LET {name} = {expr}".format(
-                name=name, expr=expr))
+                name=name, expr=self.process_expr(expr)))
 
         return u"\n".join(pairs)
+
+    @property
+    def expr_filter(self):
+        conds = []
+        for cond in self.filter_expr:
+            conds.append(u"FILTER {}".format(cond))
+
+        return u"\n".join(conds)
+
+    @property
+    def expr_collect(self):
+        collect = []
+        for pairs, into in self.collect_expr:
+            exprs = []
+            into = u" INTO {}".format(into) if into else u""
+
+            for name, expr in zip(pairs[0::2], pairs[1::2]):
+                exprs.append(u"{} = {}".format(name, self.process_expr(expr)))
+
+            collect.append(u"COLLECT {pairs}{into}".format(
+                pairs=", ".join(exprs), into=into))
+
+        return u"\n".join(collect)
+
+    @property
+    def expr_sort(self):
+        if not self.sort_expr:
+            return u""
+
+        return u"SORT {}".format(", ".join(self.sort_expr))
+
+    @property
+    def expr_limit(self):
+        count, offset = self.limit_expr
+
+        if count is None and offset is None:
+            return u""
+
+        if offset is None:
+            return u"LIMIT {}".format(count)
+
+        return u"LIMIT {}, {}".format(offset, count)
 
     def build_nested_query(self, n):
         """
@@ -196,12 +265,20 @@ class AQLQuery(object):
             for_expr=self.expr_for)
 
     def build_query(self):
-        # Building main part
-        return u"""
-            FOR {for_var} IN
-                {for_expr}
-                {let_expr}
+        """
+        Here we building query. Wohoo.
+        """
+        if self._built_query is not None and self._no_cache is False:
+            return self._built_query
+
+        query = u"""
+            FOR {for_var} IN {for_expr}
                 {for_nested}
+                {let_expr}
+                {filter_expr}
+                {collect_expr}
+                {sort_expr}
+                {limit_expr}
             RETURN
                 {return_expr}
         """.format(
@@ -209,7 +286,19 @@ class AQLQuery(object):
             for_expr=self.expr_for,
             for_nested=self.expr_nested,
             let_expr=self.expr_let,
+            filter_expr=self.expr_filter,
+            collect_expr=self.expr_collect,
+            sort_expr=self.expr_sort,
+            limit_expr=self.expr_limit,
             return_expr=self.expr_return)
 
+        logger.debug(query)
+        self._built_query = query
+        return query
+
+    def execute(self):
+        # TODO: create cursor
+        # TODO: build query
+        pass
 
 F = FuncFactory()
