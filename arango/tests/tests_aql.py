@@ -63,9 +63,10 @@ class TestAqlGeneration(TestsBase):
             CLEANUP(q1.build_query()),
             CLEANUP(u"""
                 FOR user IN users RETURN
-                    {"user-last-name": user.last_name,
+                    {"user*age": user[\'*age\'],
                     "user-first-name": user.first_name,
-                    "user*age": user[\'*age\']}
+                    "user-last-name": user.last_name
+                    }
             """))
 
     def test_nested_queries(self):
@@ -93,9 +94,9 @@ class TestAqlGeneration(TestsBase):
                       .build_query()),
             CLEANUP("""
                 FOR obj IN user
-                RETURN {"user": obj,
-                        "members": LENGTH(
-                            FOR obj IN membership RETURN obj )}
+                RETURN {"members": LENGTH(
+                            FOR obj IN membership RETURN obj ),
+                        "user": obj}
             """))
 
     def test_let_expr(self):
@@ -110,7 +111,7 @@ class TestAqlGeneration(TestsBase):
                 FOR obj IN user
                     LET name = u.first_name
                     LET email = LENGTH(u.email)
-                RETURN {"name": name, "email": email}
+                RETURN {"email": email, "name": name}
             """))
 
     def test_let_subquery_expr(self):
@@ -135,7 +136,7 @@ class TestAqlGeneration(TestsBase):
                                 RETURN
                                 {"groups": m.groups} ),
                          "within": m1.within} )
-                RETURN {"name": obj.name, "email": obj.email}
+                RETURN {"email": obj.email, "name": obj.name}
             """))
 
     def test_filter_expr(self):
@@ -151,7 +152,7 @@ class TestAqlGeneration(TestsBase):
                 FOR u IN user
                 FILTER u.age >= 18 && u.name != ''
                 FILTER u.email.length > 10
-                RETURN {"name": u.name, "email": email}
+                RETURN {"email": email, "name": u.name}
             """))
 
     def test_collect_expr(self):
@@ -167,7 +168,7 @@ class TestAqlGeneration(TestsBase):
             CLEANUP(u"""
                 FOR u IN user
                 COLLECT emails = u.email
-                RETURN {"u": u, "emails": emails}
+                RETURN {"emails": emails, "u": u}
             """))
 
         q2.iter("u")\
@@ -179,7 +180,7 @@ class TestAqlGeneration(TestsBase):
             CLEANUP(u"""
                 FOR u IN user
                 COLLECT emails = u.email INTO g
-                RETURN {"u": u, "g": g}
+                RETURN {"g": g, "u": u}
             """))
 
         sq = AQLQuery(collection="members")
@@ -193,9 +194,10 @@ class TestAqlGeneration(TestsBase):
                 FOR u IN user
                 COLLECT emails = u.email INTO g
                 RETURN {
-                    "u": u, "g": MAX(
+                    "g": MAX(
                         FOR c IN g RETURN c
-                    )
+                    ),
+                    "u": u
                 }
             """))
 

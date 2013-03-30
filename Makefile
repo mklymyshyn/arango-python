@@ -13,9 +13,13 @@ coverage:
 		--cover-html-dir=./coverage \
 		--with-coverage --cover-package=arango
 
-tests: smoke
+tests: smoke doctest
 	$(foreach client,$(CLIENTS),USE_CLIENT=arango.clients.$(client) INTEGRATION=1 NOSMOKE=1 nosetests -v; )
+
+doctest:
+ifdef PYTHON_V2
 	$(MAKE) -C docs doctest
+endif
 
 test: tests
 

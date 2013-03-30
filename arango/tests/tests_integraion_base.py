@@ -1,6 +1,7 @@
 import os
 import logging
 import unittest
+import sys
 import time
 
 from nose import SkipTest
@@ -35,6 +36,10 @@ class TestsIntegration(unittest.TestCase):
         if "USE_CLIENT" in os.environ:
             module_path = os.environ["USE_CLIENT"].split(".")
             client_cls = module_path.pop()
+
+            if sys.version_info.major == 3:
+                if "pycurl" in client_cls.lower():
+                    raise SkipTest
 
             module = __import__(".".join(module_path))
 
