@@ -1,7 +1,23 @@
+.. testsetup::
+
+    from arango import collection as c
+    from arango.aql import F, V
+
+    c.test.delete()
+    c.test.create()
+
+    c.test.docs.create({
+        "name": "John", "email": "john@example.com",
+        "last_name": "McDonald"})
+    c.test.docs.create({
+        "name": "Jane", "email": "jane@example.com",
+        "last_name": "McDonald"})
+
+
 .. _queries:
 
-AQL Query Buidler
------------------
+AQL Queries
+-----------
 
 Query Builder is abstraction layer around **AQL**
 to work with it in more *pythonic* way.
@@ -16,24 +32,43 @@ Simple example:
     from arango import collection as c
 
     # create collection
-    c.test.create()
+    c.test1.create()
 
-    c.test.docs.create({"name": "John", "email": "john@example.com"})
-    c.test.docs.create({"name": "Jane", "email": "jane@example.com"})
+    c.test1.docs.create({"name": "John", "email": "john@example.com"})
+    c.test1.docs.create({"name": "Jane", "email": "jane@example.com"})
 
-    c.test.query.filter("name == 'John'").build_query()
+    c.test1.query.filter("obj.name == 'John'").build_query()
+
+    c.test1.delete()
 
 will generate AQL query::
 
     FOR obj IN test
-        FILTER name == 'John'
+        FILTER obj.name == 'John'
     RETURN
         obj
 
 
+.. _queries_api:
+
+AQL Query Builder API
+~~~~~~~~~~~~~~~~~~~~~
+
+Builder methods to generate AQL query:
+
+.. autoclass:: arango.aql.AQLQuery
+    :members: iter, over, nested, let, filter, collect,
+              sort, limit, bind, result, execute, build_query
+
+
+Helpers to work with query variables and functions.
+
+.. automodule:: arango.aql
+    :members: V, FuncFactory
+
 
 Making raw queries with AQL
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now it's possible to querieng database by
 using :term:`Arango Query Language (AQL)`.
@@ -50,6 +85,7 @@ not implemented in driver.
 
 
 .. autoclass:: arango.cursor.Cursor
+    :members: first, last, bind
 
 
 Custom data wrapper for raw queries

@@ -81,7 +81,20 @@ class Func(object):
 
 class FuncFactory(object):
     """
-    AQL Function factory
+    AQL Function factory.
+    This is ``F`` object in ``arango.aql`` module.
+
+    .. code::
+
+        from arango.aql import F
+
+        c.test.query.over(F.PATH("a", "b", "c")).execute()
+
+    Execute query::
+
+        FOR obj IN PATH(a, b, c)
+        RETURN obj
+
     """
     def __getattribute__(self, name):
         def f(*args, **kwargs):
@@ -90,7 +103,22 @@ class FuncFactory(object):
         return f
 
 
-def var_factory(name):
+def V(name):
+    """
+    Factory for defining variables in requests.
+    By default in functions arguments which are dicts
+    all fields wrapped with double quoutes ``"``.
+    To specify members of variables defined above
+    ``V`` factory should be used.
+
+    .. testcode::
+
+        expect = 'MERGE({"user1": u.name}, {"user1": "name"})'
+        assert F.MERGE(
+            {"user1": V("u.name")},
+            {"user1": "name"}).build_query() == expect
+
+    """
     return Variable(name)
 
 
@@ -122,12 +150,21 @@ class AQLQuery(object):
         return self
 
     def iter(self, name):
+        """
+        ``FOR`` cycle temporary variable,
+        ``variable-name`` in AQL expression::
+
+            FOR variable-name IN expression
+
+        """
         self.for_var = name
         return self
 
     def over(self, expression):
         """
-        Implementation of FOR operation::
+        ``expression`` in ``FOR`` cycle
+
+        .. code::
 
             FOR variable-name IN expression
 
@@ -141,7 +178,9 @@ class AQLQuery(object):
 
     def let(self, name, value):
         """
-        LET operation::
+        Add ``LET`` operation
+
+        .. code::
 
             LET variable-name = expression
 
@@ -151,9 +190,21 @@ class AQLQuery(object):
 
     def filter(self, condition):
         """
-        FILTER operation::
+        Filter query by condition ``condition``.
+        It's possible to add multiple filter
+        expressions.
 
-            FILTER a==b && c==d
+        .. code::
+
+            FILTER condition
+
+        For exmaple code in python
+
+        .. code::
+
+            c.test.query
+                  .filter("a==b && c==d")
+                  .filter("d == m")
 
         """
         self.filter_expr.append(condition)
@@ -161,10 +212,23 @@ class AQLQuery(object):
 
     def collect(self, *pairs, **kwargs):
         """
-        COLLECT operation::
+        Specify ``COLLECT`` operators, it's possible
+        to use it multiple times
+
+        .. code::
 
             COLLECT variable-name = expression
             COLLECT variable-name = expression INTO groups
+
+        In python
+
+        .. code::
+
+            c.test.query
+                  .collect("emails", "u.email")
+                  .collect("names", "u.name", into="eml")
+                  .result(emails="eml",
+                          names="names")
 
         """
 
@@ -178,18 +242,46 @@ class AQLQuery(object):
 
     def sort(self, *args):
         """
+        Sort result by criterias from ``args``.
+
+        .. code::
+
+            query.sort("u.email", "u.first_name DESC")
+                 .sort("u.last_name")
         """
         self.sort_expr.extend(args)
         return self
 
     def limit(self, count, offset=None):
         """
+        Limit results with ``count`` items. By default
+        ``offset`` is ``0``.
+
+        .. code::
+
+            query.limit(100, offset=10)
+
         """
         self.limit_expr = count, offset
         return self
 
     def bind(self, **kwargs):
         """
+        Bind some data to AQL Query. Technically it's
+        just a proxy to :py:attr:`arango.cursor.Cursor.bind`
+        method which attach variables to the ``Cursor``.
+
+        It's mostly for avoding any kind of query injetions.
+
+        .. testcode::
+
+            data = c.test.query.filter("obj.name == @name")\\
+                              .bind(name="Jane")\\
+                              .execute().first
+
+            assert data != None
+            assert data.body["name"] == "Jane"
+
         """
         self.bind_vars.update(kwargs)
         return self
@@ -331,7 +423,9 @@ class AQLQuery(object):
 
     def build_query(self):
         """
-        Here we building query. Wohoo.
+        Build AQL query and return it as
+        a string. This is good start to
+        debug generated AQL queries.
         """
         if self._built_query is not None and self._no_cache is False:
             return self._built_query
@@ -359,7 +453,8 @@ class AQLQuery(object):
 
     def execute(self):
         """
-        Execute query: create cursor so on
+        Execute query: create cursor, put binded variables
+        and return instance of :py:attr:`arango.cursor.Cursor` object
         """
         self.cursor_args.update({"bindVars": self.bind_vars})
 
@@ -371,4 +466,3 @@ class AQLQuery(object):
 
 
 F = FuncFactory()
-V = var_factory

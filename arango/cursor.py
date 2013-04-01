@@ -80,6 +80,28 @@ class Cursor(object):
     def __iter__(self):
         return self
 
+    @property
+    def first(self):
+        """
+        Get first element from resultset
+        """
+        self.bulk()
+        try:
+            return self.wrapper(self.connection, self._dataset[0])
+        except IndexError:
+            return None
+
+    @property
+    def last(self):
+        """
+        Return last element from ``current bulk``. It's
+        **NOT** last result in *entire dataset*.
+        """
+        try:
+            return self.wrapper(self.connection, self._dataset[-1])
+        except IndexError:
+            return None
+
     def next(self):
         """
         Iterator though resultset (lazy)
