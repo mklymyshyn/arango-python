@@ -85,7 +85,9 @@ class Cursor(object):
         """
         Get first element from resultset
         """
-        self.bulk()
+        if not self._dataset:
+            self.bulk()
+
         try:
             return self.wrapper(self.connection, self._dataset[0])
         except IndexError:
@@ -97,7 +99,9 @@ class Cursor(object):
         Return last element from ``current bulk``. It's
         **NOT** last result in *entire dataset*.
         """
-        self.bulk()
+        if not self._dataset:
+            self.bulk()
+
         try:
             return self.wrapper(self.connection, self._dataset[-1])
         except IndexError:

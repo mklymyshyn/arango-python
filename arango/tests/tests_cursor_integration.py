@@ -52,6 +52,15 @@ class TestsCursor(TestsIntegration):
         cursor = self.cursor("FOR d IN test SORT d.num ASC RETURN d")
         assert_equal(cursor.last.body["num"], 9)
 
+    def test_empty_last_first(self):
+        self.conn.collection.abc.create()
+        cursor = self.cursor("FOR d IN abc RETURN d")
+
+        assert_equal(cursor.first, None)
+        assert_equal(cursor.last, None)
+
+        self.conn.collection.abc.delete()
+
     @raises(AqlQueryError)
     def test_wrong_query(self):
         list(self.cursor("WRONG QUERY"))
