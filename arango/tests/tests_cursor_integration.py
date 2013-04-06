@@ -1,8 +1,9 @@
 import logging
 
+from nose.tools import assert_equal, raises
 
-from nose.tools import assert_equal
 from arango.cursor import Cursor
+from arango.exceptions import AqlQueryError
 
 from .tests_integraion_base import TestsIntegration
 
@@ -33,6 +34,27 @@ class TestsCursor(TestsIntegration):
         except Exception:
             logger.error("Can't print", exc_info=True)
             raise
+
+    def test_bind(self):
+        [self.c.documents.create({"num": n}) for n in range(10)]
+        cursor = self.cursor(
+            "FOR d IN test FILTER d.num == @num RETURN d", count=True)
+        cursor.bind({"num": 2})
+        assert_equal(cursor.first.body["num"], 2)
+
+    def test_first(self):
+        [self.c.documents.create({"num": n}) for n in range(10)]
+        cursor = self.cursor("FOR d IN test SORT d.num ASC RETURN d")
+        assert_equal(cursor.first.body["num"], 0)
+
+    def test_last(self):
+        [self.c.documents.create({"num": n}) for n in range(10)]
+        cursor = self.cursor("FOR d IN test SORT d.num ASC RETURN d")
+        assert_equal(cursor.last.body["num"], 9)
+
+    @raises(AqlQueryError)
+    def test_wrong_query(self):
+        list(self.cursor("WRONG QUERY"))
 
 
 class TestQueries(TestsIntegration):

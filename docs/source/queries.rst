@@ -54,11 +54,14 @@ will generate AQL query::
 AQL Query Builder API
 ~~~~~~~~~~~~~~~~~~~~~
 
+This API typically accesible via ``query`` method of
+collection instance.
+
 Builder methods to generate AQL query:
 
 .. autoclass:: arango.aql.AQLQuery
     :members: iter, over, nested, let, filter, collect,
-              sort, limit, bind, result, execute, build_query
+              sort, limit, bind, cursor, result, execute, build_query
 
 
 Helpers to work with query variables and functions.
@@ -96,6 +99,17 @@ It's not necessary to wrap all documents within
 but you can provide custom wrapper by overriding
 ``wrapper`` argument during execution of
 ``connection.query`` method.
+
+.. note::
+    Also it's possible to provide custom wrapper via
+    :py:attr:`arango.aql.AQLQuery.cursor` method during
+    building of the **AQL** query:
+
+    .. code::
+
+        c.test1.query.cursor(wrapper=lambda conn, item: item)
+                     .filter("obj.name == 'John'").build_query()
+
 
 ``wrapper`` should accept two arguments:
 

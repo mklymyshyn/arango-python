@@ -146,6 +146,12 @@ class AQLQuery(object):
         self.cursor_args = {}
 
     def cursor(self, **kwargs):
+        """
+        Method to provide custom arguments for
+        :py:attr:`arango.cursor.Cursor` instance. All
+        keywords arguments except ``bindVars`` may be changed.
+
+        """
         self.cursor_args = kwargs
         return self
 

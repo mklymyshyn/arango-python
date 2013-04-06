@@ -1,7 +1,7 @@
 import logging
 
 from .document import Document
-
+from .exceptions import AqlQueryError
 
 __all__ = ("Cursor",)
 
@@ -97,6 +97,7 @@ class Cursor(object):
         Return last element from ``current bulk``. It's
         **NOT** last result in *entire dataset*.
         """
+        self.bulk()
         try:
             return self.wrapper(self.connection, self._dataset[-1])
         except IndexError:
@@ -131,16 +132,19 @@ class Cursor(object):
                 "query": self.query,
                 "count": self.count,
                 "batchSize": self.batchSize,
-                "bindVars": self.bindVars
-            })
+                "bindVars": self.bindVars})
 
             self._cursor_id = response.get("id", None)
         else:
             response = self.connection.put(
-                self.READ_NEXT_BATCH_PATH.format(self._cursor_id)
-            )
+                self.READ_NEXT_BATCH_PATH.format(self._cursor_id))
 
-        # TODO: handle errors
+        if response.status not in [200, 201]:
+            raise AqlQueryError(
+                response.data.get("errorMessage", "Unknown error"),
+                num=response.data.get("errorNum", -1),
+                code=response.status)
+
         self._has_more = response.get("hasMore", False)
         self._count = int(response.get("count", 0))
         self._dataset = response["result"] if "result" in response else []

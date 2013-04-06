@@ -5,7 +5,7 @@ __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "EmptyFields", "EdgeAlreadyCreated",
            "DocumentNotFound", "EdgeNotYetCreated",
            "EdgeIncompatibleDataType", "EdgeNotFound",
-           "DocuemntUpdateError")
+           "DocuemntUpdateError", "AqlQueryError")
 
 
 class InvalidCollection(Exception):
@@ -60,4 +60,15 @@ class EdgeIncompatibleDataType(Exception):
 
 
 class EdgeNotFound(Exception):
-  """Raised in case Edge not found"""
+    """Raised in case Edge not found"""
+
+
+class AqlQueryError(Exception):
+    """In case AQL query cannot be executed"""
+
+    def __init__(self, message, num=0, code=0):
+        self.num = num
+        self.code = code
+        self.message = message
+
+        super(AqlQueryError, self).__init__(message)
