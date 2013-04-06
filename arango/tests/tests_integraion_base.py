@@ -37,7 +37,8 @@ class TestsIntegration(unittest.TestCase):
             module_path = os.environ["USE_CLIENT"].split(".")
             client_cls = module_path.pop()
 
-            if sys.version_info.major == 3:
+            if (sys.version_info.major == 3 or
+                    hasattr(sys, "pypy_version_info")):
                 if "pycurl" in client_cls.lower():
                     raise SkipTest
 
