@@ -23,9 +23,10 @@ def safe_request(func):
         try:
             return func(*args, **kwargs)
         except HTTPError as e:
+            content = e.read()
             e.close()
             return RequestsBase.build_response(
-                e.code, e.msg, e.headers, "")
+                e.code, e.msg, e.headers, content)
 
     return wrap
 
@@ -75,8 +76,8 @@ class Urllib2Client(RequestsBase):
         req = Request(url)
         req.add_header('Content-Type', 'application/json')
         req.add_data(data.encode(cls.encoding))
-        response = urlopen(req, **cls._config)
 
+        response = urlopen(req, **cls._config)
         content = response.read()
         response.close()
 

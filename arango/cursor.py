@@ -1,7 +1,7 @@
 import logging
 
 from .document import Document
-
+from .exceptions import AqlQueryError
 
 __all__ = ("Cursor",)
 
@@ -62,7 +62,7 @@ class Cursor(object):
 
         # has more batch or not. By default it's true
         # to fetch at least first dataset/response
-        self._hasMore = True
+        self._has_more = True
 
         # data from current batch
         self._dataset = []
@@ -70,8 +70,42 @@ class Cursor(object):
         # total count of results, extracted from Database
         self._count = 0
 
+    def bind(self, bind_vars):
+        """
+        Bind variables to the cursor
+        """
+        self.bindVars = bind_vars
+        return self
+
     def __iter__(self):
         return self
+
+    @property
+    def first(self):
+        """
+        Get first element from resultset
+        """
+        if not self._dataset:
+            self.bulk()
+
+        try:
+            return self.wrapper(self.connection, self._dataset[0])
+        except IndexError:
+            return None
+
+    @property
+    def last(self):
+        """
+        Return last element from ``current bulk``. It's
+        **NOT** last result in *entire dataset*.
+        """
+        if not self._dataset:
+            self.bulk()
+
+        try:
+            return self.wrapper(self.connection, self._dataset[-1])
+        except IndexError:
+            return None
 
     def next(self):
         """
@@ -84,7 +118,7 @@ class Cursor(object):
             item = self._dataset.pop(0)
             return self.wrapper(self.connection, item)
         except IndexError:
-            if self._hasMore:
+            if self._has_more:
                 self.bulk()
                 return self.next()
 
@@ -102,17 +136,20 @@ class Cursor(object):
                 "query": self.query,
                 "count": self.count,
                 "batchSize": self.batchSize,
-                "bindVars": self.bindVars
-            })
+                "bindVars": self.bindVars})
 
             self._cursor_id = response.get("id", None)
         else:
             response = self.connection.put(
-                self.READ_NEXT_BATCH_PATH.format(self._cursor_id)
-            )
+                self.READ_NEXT_BATCH_PATH.format(self._cursor_id))
 
-        # TODO: handle errors
-        self._hasMore = response.get("hasMore", False)
+        if response.status not in [200, 201]:
+            raise AqlQueryError(
+                response.data.get("errorMessage", "Unknown error"),
+                num=response.data.get("errorNum", -1),
+                code=response.status)
+
+        self._has_more = response.get("hasMore", False)
         self._count = int(response.get("count", 0))
         self._dataset = response["result"] if "result" in response else []
 

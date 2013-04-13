@@ -5,7 +5,7 @@ from .edge import Edges
 from .index import Index
 from .exceptions import InvalidCollectionId, CollectionIdAlreadyExist, \
     InvalidCollection
-
+from .aql import AQLQuery
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,25 @@ class Collection(object):
         Get collection name
         """
         return self.name
+
+    @property
+    def query(self):
+        """
+        .. :py:attr::
+
+        Create Query Builder for current collection.
+
+        .. testcode::
+
+                c.test.create()
+                c.test.docs.create({"name": "sample"})
+
+                assert len(c.test.query.execute()), 1
+
+        """
+        return AQLQuery(
+            connection=self.connection,
+            collection=self.cid)
 
     @property
     def index(self):
