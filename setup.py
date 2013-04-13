@@ -13,7 +13,7 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 
 setup(
     name="arango",
