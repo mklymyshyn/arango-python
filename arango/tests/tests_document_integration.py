@@ -182,3 +182,22 @@ class TestsDocument(TestsIntegration):
         assert_equal(
             response,
             {u'created': 3, u'errors': 0, u'empty': 0, u'error': False})
+
+    def test_bulk_insert_attrs_and_values(self):
+        c = self.conn.collection.test
+        c.create()
+
+        docs = [
+            ["name", "age", "sex"],
+            ["max", 27, "male"],
+            ["val", 28, "female"],
+            ["emma", 4, "female"]]
+
+        count = c.documents.count
+        response = c.documents.create_bulk(docs)
+
+        assert_equal(count + len(docs) - 1, c.documents.count)
+
+        assert_equal(
+            response,
+            {u'created': 3, u'errors': 0, u'empty': 0, u'error': False})

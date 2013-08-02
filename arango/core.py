@@ -145,11 +145,11 @@ class Connection(object):
     @property
     def version(self):
         """
-        Return object with information about
+        Return object with detailed information about
         ArangoDB Server.
         """
         data = self.get(
-            self.VERSION_PATH,
+            self.qs(self.VERSION_PATH, details="true"),
             ignore_request_args=True).data
 
         return ArangoVersion(data)

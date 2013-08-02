@@ -118,7 +118,7 @@ class Documents(object):
 
         response = self.connection.post(
             self.connection.qs(self.BULK_INSERT_PATH, **qs_args),
-            data=u"\n".join(json.dumps(doc) for doc in docs).encode("utf-8"),
+            data=u"\n".join(json.dumps(doc) for doc in docs),
             ignore_request_args=True)
 
         # update revision of the document
