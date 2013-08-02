@@ -17,9 +17,21 @@ __all__ = ("Connection", "Response",
 logger = logging.getLogger(__name__)
 
 
+class ArangoVersion(object):
+    def __init__(self, data):
+        self.__dict__.update(data)
+
+    def __repr__(self):
+        return u"<{0} {1}>".format(
+            self.server.title(),
+            self.version)
+
+
 class Connection(object):
     """Connetion to ArangoDB
     """
+
+    VERSION_PATH = "/_api/version"
 
     _prefix = "http://"
     _url = None
@@ -49,6 +61,11 @@ class Connection(object):
         """Handling different http methods and wrap requests
         with custom arguments
         """
+
+        # pass ONLY version attribute
+        if name == "version":
+            return object.__getattribute__(self, name)
+
         if name in self._pass_args:
             return self.requests_factory(method=name)
 
@@ -124,6 +141,18 @@ class Connection(object):
     def qs(self, path, **params):
         """Encode params  as GET argumentd and concat it with path"""
         return "{0}?{1}".format(path, urlencode(params))
+
+    @property
+    def version(self):
+        """
+        Return object with information about
+        ArangoDB Server.
+        """
+        data = self.get(
+            self.VERSION_PATH,
+            ignore_request_args=True).data
+
+        return ArangoVersion(data)
 
     @property
     def collection(self):

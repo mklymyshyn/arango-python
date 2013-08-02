@@ -97,11 +97,24 @@ class Documents(object):
                 u'created': 3, u'errors': 0,
                 u'empty': 0, u'error': False}, "Docs are not created"
 
+        Actually, it's possible to use **Headers and values import**
+        in this call (and first element in ``docs`` have
+        to be attribute names and every element in ``docs`` array
+        have to be list).
+
         """
+
+        # if no documents provided
+        if not docs:
+            return False
+
         qs_args = {
-            "type": "documents",  # we do not want to use array here!
             "createCollection": "true",
             "collection": self.collection.cid}
+
+        # if there's no headers/values import
+        if not isinstance(docs[0], (list, tuple)):
+            qs_args["type"] = "documents"  # we do not want to use array here!
 
         response = self.connection.post(
             self.connection.qs(self.BULK_INSERT_PATH, **qs_args),
