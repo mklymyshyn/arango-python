@@ -32,6 +32,8 @@ class PyCurlClient(RequestsBase):
     DEBUG = False
     IPRESOLVE = pycurl.IPRESOLVE_V4
 
+    encoding = "utf-8"
+
     @classmethod
     def client(cls, url):
         client = pycurl.Curl()
@@ -85,7 +87,8 @@ class PyCurlClient(RequestsBase):
         client, buf = cls.client(url)
 
         client.setopt(pycurl.POST, True)
-        client.setopt(pycurl.POSTFIELDS, data or "")
+        data = data or ""
+        client.setopt(pycurl.POSTFIELDS, data.encode(cls.encoding))
 
         return client, buf
 
@@ -101,10 +104,9 @@ class PyCurlClient(RequestsBase):
     @classmethod
     @performer
     def put(cls, url, data=None):
-        if data is None:
-            data = ""
+        data = data or ""
 
-        content = StringIO.StringIO(data)
+        content = StringIO.StringIO(data.encode(cls.encoding))
         client, buf = cls.client(url)
 
         client.setopt(pycurl.PUT, True)

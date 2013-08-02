@@ -5,6 +5,7 @@ from .exceptions import DocumentAlreadyCreated, \
     DocumentIncompatibleDataType, DocumentNotFound, \
     DocuemntUpdateError
 from .utils import proxied_document_ref, parse_meta
+from .utils import json
 
 __all__ = ("Documents", "Document",)
 
@@ -17,6 +18,7 @@ class Documents(object):
     """
 
     DOCUMENTS_PATH = "/_api/document?collection={0}"
+    BULK_INSERT_PATH = "/_api/import"
 
     def __init__(self, collection=None):
         self.connection = collection.connection
@@ -76,9 +78,41 @@ class Documents(object):
         """
         doc = Document(
             collection=self.collection,
-            connection=self.connection
-        )
+            connection=self.connection)
         return doc.create(*args, **kwargs)
+
+    def create_bulk(self, docs, batch=100):
+        """
+        Insert bulk of documents using **HTTP Interface for bulk imports**.
+
+        .. testcode::
+
+            docs = [
+                {"name": "doc1"},
+                {"name": "doc2"},
+                {"name": "doc3"}]
+            response = c.test.documents.create_bulk(docs)
+
+            assert response == {
+                u'created': 3, u'errors': 0,
+                u'empty': 0, u'error': False}, "Docs are not created"
+
+        """
+        qs_args = {
+            "type": "documents",  # we do not want to use array here!
+            "createCollection": "true",
+            "collection": self.collection.cid}
+
+        response = self.connection.post(
+            self.connection.qs(self.BULK_INSERT_PATH, **qs_args),
+            data=u"\n".join(json.dumps(doc) for doc in docs).encode("utf-8"),
+            ignore_request_args=True)
+
+        # update revision of the document
+        if response.status == 201:
+            return response.data
+
+        return False
 
     def delete(self, ref_or_document):
         """
@@ -401,7 +435,7 @@ class Document(ComparsionMixin, LazyLoadMixin):
             self.DELETE_DOCUMENT_PATH.format(self.id)
         )
 
-        if response.status == 200:
+        if response.status == 202:
             self._id = None
             self._rev = None
             self._body = None

@@ -51,7 +51,7 @@ class TestsDocument(TestsIntegration):
 
         logger.info("Creating sample document")
 
-        doc = c.collection.test.documents.create([1])
+        doc = c.collection.test.documents.create({1: 1})
 
         assert_not_equal(doc, None)
 
@@ -164,3 +164,21 @@ class TestsDocument(TestsIntegration):
                     break
 
             assert_true(flag)
+
+    def test_bulk_insert(self):
+        c = self.conn.collection.test
+        c.create()
+
+        docs = [
+            {"title": "doc1"},
+            {"title": "doc2"},
+            {"title": "doc3"}]
+
+        count = c.documents.count
+        response = c.documents.create_bulk(docs)
+
+        assert_equal(count + len(docs), c.documents.count)
+
+        assert_equal(
+            response,
+            {u'created': 3, u'errors': 0, u'empty': 0, u'error': False})

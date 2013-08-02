@@ -79,6 +79,7 @@ class Connection(object):
             # Py 2.7 only, yeah!
             kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
+            ignore_request_args = kw.pop("ignore_request_args", False)
 
             # NB: don't pass `data` argument in case
             # it's empty
@@ -95,7 +96,7 @@ class Connection(object):
 
             return Response(
                 url, req(url, **kw),
-                args=kw,
+                args=kw if ignore_request_args is False else None,
                 expect_raw=expect_raw)
 
         return requests_factory_wrapper
@@ -163,11 +164,9 @@ class Response(dict):
                              json.loads(response.text).items()})
 
         except (TypeError, ValueError) as e:
-            msg = "Can't parse response from ArangoDB:"\
-                " {0} (URL: {1}, Response: {2})".format(
-                str(e),
-                url,
-                repr(response))
+            msg = u"Can't parse response from ArangoDB:"\
+                u" {0} (URL: {1}, Response: {2})".format(
+                    str(e), url, repr(response))
 
             logger.error(msg)
             self.status = 500

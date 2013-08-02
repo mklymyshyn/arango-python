@@ -16,7 +16,7 @@ class TestDocumentBase(TestsBase):
 
     def delete_response_mock(self):
         return self.response_mock(
-            status_code=200,
+            status_code=202,
             text=json.dumps(dict(
                 _rev="30967598",
                 _id="1/30967598",
