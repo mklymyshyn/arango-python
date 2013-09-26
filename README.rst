@@ -54,7 +54,8 @@ Supported Python interpreters and versions:
 
 Supported **ArangoDB versions**: *1.1x*, *1.2x* and *1.3x*
 
-Developed by **[Maksym Klymyshyn](http://ua.linkedin.com/in/klymyshyn)**
+Developed by `Maksym Klymyshyn <http://ua.linkedin.com/in/klymyshyn>`_
+
 
 
 Changelog
