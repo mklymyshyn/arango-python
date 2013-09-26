@@ -17,9 +17,21 @@ __all__ = ("Connection", "Response",
 logger = logging.getLogger(__name__)
 
 
+class ArangoVersion(object):
+    def __init__(self, data):
+        self.__dict__.update(data)
+
+    def __repr__(self):
+        return u"<{0} {1}>".format(
+            self.server.title(),
+            self.version)
+
+
 class Connection(object):
     """Connetion to ArangoDB
     """
+
+    VERSION_PATH = "/_api/version"
 
     _prefix = "http://"
     _url = None
@@ -49,6 +61,11 @@ class Connection(object):
         """Handling different http methods and wrap requests
         with custom arguments
         """
+
+        # pass ONLY version attribute
+        if name == "version":
+            return object.__getattribute__(self, name)
+
         if name in self._pass_args:
             return self.requests_factory(method=name)
 
@@ -79,6 +96,7 @@ class Connection(object):
             # Py 2.7 only, yeah!
             kw = {k: v for k, v in self.additional_args}
             kw.update(kwargs)
+            ignore_request_args = kw.pop("ignore_request_args", False)
 
             # NB: don't pass `data` argument in case
             # it's empty
@@ -95,7 +113,7 @@ class Connection(object):
 
             return Response(
                 url, req(url, **kw),
-                args=kw,
+                args=kw if ignore_request_args is False else None,
                 expect_raw=expect_raw)
 
         return requests_factory_wrapper
@@ -123,6 +141,18 @@ class Connection(object):
     def qs(self, path, **params):
         """Encode params  as GET argumentd and concat it with path"""
         return "{0}?{1}".format(path, urlencode(params))
+
+    @property
+    def version(self):
+        """
+        Return object with detailed information about
+        ArangoDB Server.
+        """
+        data = self.get(
+            self.qs(self.VERSION_PATH, details="true"),
+            ignore_request_args=True).data
+
+        return ArangoVersion(data)
 
     @property
     def collection(self):
@@ -163,11 +193,9 @@ class Response(dict):
                              json.loads(response.text).items()})
 
         except (TypeError, ValueError) as e:
-            msg = "Can't parse response from ArangoDB:"\
-                " {0} (URL: {1}, Response: {2})".format(
-                str(e),
-                url,
-                repr(response))
+            msg = u"Can't parse response from ArangoDB:"\
+                u" {0} (URL: {1}, Response: {2})".format(
+                    str(e), url, repr(response))
 
             logger.error(msg)
             self.status = 500
@@ -290,3 +318,40 @@ class Resultset(object):
         return "<Resultset: {0}{1}>".format(
             ", ".join(items), suff
         )
+
+
+class RequestChunk(object):
+    """
+    Chunk of multiple/batched request. Real request should
+    contain "chunks" which contain small post requests.
+    """
+    headers = []
+    boundary = "----request----"
+    CRLF = "\r\n"
+    part_num = 1
+    method = "GET"
+
+    def __init__(self, url, body, method=None, headers=None,
+                 boundary=None, part_num=1):
+        self.part_num = part_num
+        self.headers = headers or self.headers
+        self.boundary = boundary or self.boundary
+        self.url = url
+        self.method = method or self.method
+
+    def build(self):
+        self.headers.append(
+            ("Content-Type", "application/x-arango-batchpart"),
+            ("Content-Id", self.part_num))
+        headers = self.CRLF.join("{0}: {1}".format(name, value)
+                                 for name, value in self.headers)
+
+        request = "{headers}{crlf}{crlf}"\
+                  "{method} {url} HTTP/1.1{crlf}{crlf}{body}{crlf}"
+
+        return request.format(
+            crlf=self.CRLF,
+            headers=headers,
+            url=self.url,
+            method=self.method,
+            body=self.body)  # TODO: encode it

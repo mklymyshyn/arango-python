@@ -27,3 +27,10 @@ class RequestsBase(object):
 
     def delete(*args, **kwargs):
         raise NotImplementedError
+
+    def multipart(requests):
+        """
+        Method to collecto multiple requests and
+        send it as a batch using **HttpBatch API**.
+        """
+        pass
