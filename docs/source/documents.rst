@@ -45,7 +45,7 @@ Basically via `docuemnts` shortcut accessible **Docuemnts Proxy** - Proxy object
 Below described basic method within ``Documents`` proxy:
 
 .. autoclass:: arango.document.Documents
-    :members: create, delete, update, count, load
+    :members: create, create_bulk, delete, update, count, load
 
 
 

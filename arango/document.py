@@ -100,7 +100,21 @@ class Documents(object):
         Actually, it's possible to use **Headers and values import**
         in this call (and first element in ``docs`` have
         to be attribute names and every element in ``docs`` array
-        have to be list).
+        have to be list). In this case you don't need to pass
+        key/value pair for every document.
+
+        .. testcode::
+
+            docs = [
+                ["name"],
+                ["doc1"],
+                ["doc2"],
+                ["doc3"]]
+            response = c.test.documents.create_bulk(docs)
+
+            assert response == {
+                u'created': 3, u'errors': 0,
+                u'empty': 0, u'error': False}, "Docs are not created"
 
         """
 
