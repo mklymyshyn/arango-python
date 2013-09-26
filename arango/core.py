@@ -318,3 +318,40 @@ class Resultset(object):
         return "<Resultset: {0}{1}>".format(
             ", ".join(items), suff
         )
+
+
+class RequestChunk(object):
+    """
+    Chunk of multiple/batched request. Real request should
+    contain "chunks" which contain small post requests.
+    """
+    headers = []
+    boundary = "----request----"
+    CRLF = "\r\n"
+    part_num = 1
+    method = "GET"
+
+    def __init__(self, url, body, method=None, headers=None,
+                 boundary=None, part_num=1):
+        self.part_num = part_num
+        self.headers = headers or self.headers
+        self.boundary = boundary or self.boundary
+        self.url = url
+        self.method = method or self.method
+
+    def build(self):
+        self.headers.append(
+            ("Content-Type", "application/x-arango-batchpart"),
+            ("Content-Id", self.part_num))
+        headers = self.CRLF.join("{0}: {1}".format(name, value)
+                                 for name, value in self.headers)
+
+        request = "{headers}{crlf}{crlf}"\
+                  "{method} {url} HTTP/1.1{crlf}{crlf}{body}{crlf}"
+
+        return request.format(
+            crlf=self.CRLF,
+            headers=headers,
+            url=self.url,
+            method=self.method,
+            body=self.body)  # TODO: encode it
