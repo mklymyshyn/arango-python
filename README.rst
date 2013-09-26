@@ -52,6 +52,15 @@ Supported Python interpreters and versions:
  - cPython 2.7
  - PyPy 1.9
 
-Supported **ArangoDB versions**: *1.1x* and *1.2x*
+Supported **ArangoDB versions**: *1.1x*, *1.2x* and *1.3x*
 
-Developed by Maksym Klymyshyn
+Developed by **[Maksym Klymyshyn](http://ua.linkedin.com/in/klymyshyn)**
+
+
+Changelog
+*********
+
+0.1.8
+~~~~~~
+
+ * Added support of **bulk inserts**
