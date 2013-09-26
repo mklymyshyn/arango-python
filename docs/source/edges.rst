@@ -20,13 +20,13 @@
 Edges
 -----
 
-Edges is entyties which represend connection between two
-documents. The main idea of **Edges** is that you can buidl your own
-graph (tree) between set of documents and make search within hierarchy of
-documents.
+An edge is an entity that represents a connection between two
+documents. The main idea of edges is that you can build your own
+graph (tree) between sets of documents and then perform searches within
+the document hierarchy.
 
-To specify vertex ``from_document`` and ``to_document`` should be
-specified during **Edge** creation
+In order to define a vertex, ``from_document`` and ``to_document`` should
+be specified during the creation of the edge:
 
 
 .. testcode::
@@ -71,7 +71,8 @@ specified during **Edge** creation
 Edges for Collection instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Edges are accessible via collection instance for example ``connection.collection.sample_collection.edges``. Usually this expressions looks lot shorter.
+Edges are accessible via a collection instance, for example ``connection.collection.sample_collection.edges``.
+Usually this expressions looks lot shorter.
 
 Basically via `edges` shortcut accessible **Edges Proxy** - Proxy object which have several shortcuts and produce ``Resultset`` object.
 
