@@ -13,7 +13,7 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 
 setup(
     name="arango",
@@ -25,7 +25,7 @@ setup(
     packages=["arango"],
     long_description=open("README.rst").read(),
     include_package_data=True,
-    install_requires=["nose", "mock", "pycurl"],
+    install_requires=["nose", "mock"],
     test_suite="nose",
     classifiers=[
         "Topic :: Database",
