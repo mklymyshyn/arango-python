@@ -2,7 +2,8 @@
 
     from arango import create
 
-    c = create()
+    c = create(db="test")
+    c.database.create()
     c.test.delete()
     c.test.create()
 
@@ -20,7 +21,8 @@ Usage example:
     from arango import create
 
     # connection & collection `test`
-    c = create()
+    c = create(db="test")
+    c.database.create()  # make sure database exists
     c.test.create()
 
     # create FROM document

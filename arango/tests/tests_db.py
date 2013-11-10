@@ -16,7 +16,7 @@ class TestsDB(TestsIntegration):
 
     def tearDown(self):
         super(TestsDB, self).tearDown()
-        create(db="test1").connection.database.delete()
+        create(db="test1").database.delete()
 
     def test_info(self):
         data = self.conn.database.info
@@ -25,20 +25,20 @@ class TestsDB(TestsIntegration):
 
     def test_create(self):
         c = create(db="test1")
-        assert_equal(c.connection.database.info, {})
+        assert_equal(c.database.info, {})
 
-        c.connection.database.create()
-        assert_not_equal(c.connection.database.info, {})
+        c.database.create()
+        assert_not_equal(c.database.info, {})
 
-        c.connection.database.delete()
-        assert_equal(c.connection.database.info, {})
+        c.database.delete()
+        assert_equal(c.database.info, {})
 
     @raises(DatabaseAlreadyExist)
     def test_create_exist_database(self):
         c = create(db="test1")
 
-        c.connection.database.create()
-        c.connection.database.create(ignore_exist=False)
+        c.database.create()
+        c.database.create(ignore_exist=False)
 
     @raises(DatabaseSystemError)
     def test_delete_exist_database(self):

@@ -2,6 +2,7 @@ from .tests_base import TestsBase
 
 from nose.tools import assert_equal, assert_true, raises
 
+from arango.db import Database
 from arango.clients import Client
 from arango.collection import Collection, Collections
 from arango.utils import json
@@ -30,6 +31,9 @@ class TestCollectionProxy(TestsBase):
             ).cid
         )
 
+    def test_database_property(self):
+        assert_equal(self.conn.collection.database.__class__, Database)
+
     def test_repr(self):
         assert_equal(
             str(self.conn.collection),
@@ -39,10 +43,10 @@ class TestCollectionProxy(TestsBase):
     def test_collections_list(self):
         collection = self.conn.collection()
 
-        assert_equal(
-            collection,
-            []
-        )
+        assert_equal(collection, [])
+
+    def test_collections_dict_iface(self):
+        assert_equal(self.conn.collection["test"].__class__, Collection)
 
 
 class TestCollection(TestsBase):

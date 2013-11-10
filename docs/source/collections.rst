@@ -1,8 +1,8 @@
 .. testsetup::
 
     from arango import create
-    c = create()
-
+    c = create(db="test")
+    c.database.create()
 
 .. _collections:
 
@@ -17,7 +17,10 @@ It's quite easy to create collection::
     from arango import create
 
     # here we define connection to Arango
-    c = create()
+    c = create(db="test")
+
+    # make sure database exists
+    c.database.create()
 
     # here we creating collection explicitly
     c.test.create()
@@ -56,7 +59,7 @@ For example:
 
 
 .. autoclass:: arango.collection.Collections
-    :members: __call__
+    :members: __call__, database, __getitem__, __getattr__
 
 
 

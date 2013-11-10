@@ -41,8 +41,12 @@ class TestConnectionInit(TestsBase):
 
         assert_equal(
             str(conn),
-            "<Connection to ArangoDB (http://localhost:8529)>"
-        )
+            "<Connection to ArangoDB (http://localhost:8529)>")
+
+    def test_database_prefix(self):
+        conn = Connection(db="test")
+        assert_equal(conn.url(), "http://localhost:8529/_db/test")
+        assert_equal(conn.url(db_prefix=False), "http://localhost:8529")
 
 
 class TestConnectionRequestsFactory(TestsBase):
