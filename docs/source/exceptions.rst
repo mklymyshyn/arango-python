@@ -19,6 +19,8 @@ List of exceptions
 
 .. glossary::
     :sorted:
+    ``DatabaseSystemError``
+        Something went completely wrong during execution of request to the server
 
     ``InvalidCollection``
         Collection should exist and be subclass of
@@ -59,3 +61,6 @@ List of exceptions
 
     ``EdgeNotFound``
         Raised in case edge not found in database
+
+    ``DatabaseAlreadyExist``
+        Raised during execution of database creation method

@@ -20,13 +20,13 @@ class TestsBase(unittest.TestCase):
         if "NOSMOKE" in os.environ:
             raise SkipTest
 
+        self.conn = Connection()
         for m in self.methods:
-            setattr(self, m,
-                    patch.object(Client, m,
-                    MagicMock()))
+            setattr(
+                self, m,
+                patch.object(self.conn.client, m, MagicMock()))
             getattr(self, m).start()
 
-        self.conn = Connection()
         self.url = "{0}{1}".format(self.conn.url, "/document")
 
     def tearDown(self):
@@ -35,6 +35,8 @@ class TestsBase(unittest.TestCase):
                 getattr(self, m).stop()
             except RuntimeError:
                 pass
+
+        self.conn.client = Client
 
     def build_mock_response(self, *args, **kwargs):
         return RequestsBase.build_response(

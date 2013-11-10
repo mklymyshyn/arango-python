@@ -5,7 +5,12 @@ __all__ = ("InvalidCollectionId", "CollectionIdAlreadyExist",
            "EmptyFields", "EdgeAlreadyCreated",
            "DocumentNotFound", "EdgeNotYetCreated",
            "EdgeIncompatibleDataType", "EdgeNotFound",
-           "DocuemntUpdateError", "AqlQueryError")
+           "DocuemntUpdateError", "AqlQueryError", "DatabaseAlreadyExist",
+           "DatabaseSystemError")
+
+
+class DatabaseSystemError(Exception):
+    """Raises in case something went completely wrong"""
 
 
 class InvalidCollection(Exception):
@@ -72,3 +77,7 @@ class AqlQueryError(Exception):
         self.message = message
 
         super(AqlQueryError, self).__init__(message)
+
+
+class DatabaseAlreadyExist(Exception):
+    """Raises in case database already exists"""

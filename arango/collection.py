@@ -30,22 +30,36 @@ class Collections(object):
         return names
 
     def __getattr__(self, name):
+        """
+        Accessible as property by default.
+        """
+        return self._collection(name)
+
+    def __getitem__(self, name):
+        """
+        In case property used internally by ``Collections``
+        it's possible to use dict-like interface, for example
+        ``.database`` used internally as link to database instance
+        but feel free to use dict-like interface to
+        create collection with name ``database``: ``voca["database"]``
+        """
+        return self._collection(name)
+
+    def _collection(self, name):
         """Lazy init of collection"""
 
         if name in self.collections:
             return self.collections.get(name)
 
-        self.collections.update({
-            name: self.collections.get(
-                name,
-                Collection(
-                    connection=self.connection,
-                    name=name
-                )
-            )
-        })
+        self.collections[name] = self.collections.get(
+            name,
+            Collection(connection=self.connection, name=name))
 
         return self.collections.get(name)
+
+    @property
+    def database(self):
+        return self.connection.database
 
     def rename_collection(self, collection, new_name):
         """

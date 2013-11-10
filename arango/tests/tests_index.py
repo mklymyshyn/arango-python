@@ -6,7 +6,7 @@ from .tests_base import TestsBase
 
 from arango.utils import json
 from arango.exceptions import EmptyFields, WrongIndexType
-from arango.clients import Client
+
 
 __all__ = ("TestIndex",)
 
@@ -85,11 +85,6 @@ class TestIndex(TestsBase):
         return patcher
 
     def test_create(self):
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.index.CREATE.format(self.c.cid)
-        )
-
         index = self.c.index.create(
             ["name"],
             index_type=self.c.index.HASH,
@@ -97,7 +92,6 @@ class TestIndex(TestsBase):
         )
 
         assert_equal(index, None)
-        assert_equal(Client.post.call_args[0][0], url)
 
     @raises(WrongIndexType)
     def test_create_wrong_type(self):
@@ -129,16 +123,8 @@ class TestIndex(TestsBase):
         assert_equal(ids, self.list_ids)
 
     def test_delete(self):
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.index.DELETE.format(self.c.cid, "1"))
 
         is_deleted = self.c.index.delete("1")
-
-        assert_equal(
-            Client.delete.call_args[0][0],
-            url)
-
         assert_false(is_deleted)
 
     def test_delete_response(self):
@@ -149,12 +135,3 @@ class TestIndex(TestsBase):
         patcher.stop()
 
         assert_true(is_deleted)
-
-    def test_get_index(self):
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.index.READ.format(self.c.cid, "1")
-        )
-
-        self.c.index.get(1)
-        assert_equal(url, Client.get.call_args[0][0])

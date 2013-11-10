@@ -6,14 +6,6 @@ Driver for **ArangoDB REST API** inrerface, `arangodb.org <http://arangodb.org>`
 .. image:: https://travis-ci.org/joymax/arango-python.png?branch=master
 
 
-Features support
-****************
-
-Driver for Python is incomplete. It supports at the moment:
-**Connections to ArangoDB with custom options**,
-**Collections**, **Documents**, **Indexes** **Cursors**
-and have partial support of **Edges**
-
 Installation
 ************
 ::
@@ -28,19 +20,23 @@ To start work with **ArangoDB** try following example::
     from arango import create
 
     # create connection to database
-    voca = create()
+    conn = create(db="test")
+    conn.database.create()
+
     # create collection with name `test_collection`
-    voca.test_collection.create()
+    conn.test_collection.create()
+
     # create document
-    voca.test_collection.documents.create({"sample_key": "sample_value"})
+    conn.test_collection.documents.create({"sample_key": "sample_value"})
+
     # get first document
-    doc = voca.test_collection.documents().first
+    doc = conn.test_collection.documents().first
     # get document body
     doc.body
 
     # get all documents in collection
 
-    for doc in voca.test_collection.query.execute():
+    for doc in conn.test_collection.query.execute():
       print doc.id
 
 For more details please read `Documentation <http://arangodb-python-driver.readthedocs.org/en/latest/>`_
@@ -52,14 +48,19 @@ Supported Python interpreters and versions:
  - cPython 2.7
  - PyPy 1.9
 
-Supported **ArangoDB versions**: *1.1x*, *1.2x* and *1.3x*
+Supported **ArangoDB versions**: *1.4x*
 
 Developed by `Maksym Klymyshyn <http://ua.linkedin.com/in/klymyshyn>`_
 
 
-
 Changelog
 *********
+
+0.2.0
+~~~~~~
+
+ * Added support for multiple databases
+
 
 0.1.8
 ~~~~~~

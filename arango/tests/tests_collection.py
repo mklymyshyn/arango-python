@@ -2,6 +2,7 @@ from .tests_base import TestsBase
 
 from nose.tools import assert_equal, assert_true, raises
 
+from arango.db import Database
 from arango.clients import Client
 from arango.collection import Collection, Collections
 from arango.utils import json
@@ -30,6 +31,9 @@ class TestCollectionProxy(TestsBase):
             ).cid
         )
 
+    def test_database_property(self):
+        assert_equal(self.conn.collection.database.__class__, Database)
+
     def test_repr(self):
         assert_equal(
             str(self.conn.collection),
@@ -39,10 +43,10 @@ class TestCollectionProxy(TestsBase):
     def test_collections_list(self):
         collection = self.conn.collection()
 
-        assert_equal(
-            collection,
-            []
-        )
+        assert_equal(collection, [])
+
+    def test_collections_dict_iface(self):
+        assert_equal(self.conn.collection["test"].__class__, Collection)
 
 
 class TestCollection(TestsBase):
@@ -55,53 +59,12 @@ class TestCollection(TestsBase):
 
     def test_create(self):
         self.c.create()
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.CREATE_COLLECTION_PATH)
 
         test_data = {"name": "test", "waitForSync": False}
         test_args = {"data": json.dumps(test_data)}
 
         assert_true(Client.post.called)
-        assert_equal(Client.post.call_args[0][0], url)
         assert_equal(Client.post.call_args[1], test_args)
-
-    def test_load(self):
-        self.c.load()
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.LOAD_COLLECTION_PATH.format(self.c.name)
-        )
-
-        assert_equal(Client.put.call_args[0][0], url)
-
-    def test_unload(self):
-        self.c.unload()
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.UNLOAD_COLLECTION_PATH.format(self.c.name)
-        )
-
-        assert_equal(Client.put.call_args[0][0], url)
-
-    def test_delete(self):
-        self.c.delete()
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.DELETE_COLLECTION_PATH.format(self.c.name)
-        )
-
-        assert_equal(Client.delete.call_args[0][0], url)
-
-    def test_truncate(self):
-        self.c.truncate()
-
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.TRUNCATE_COLLECTION_PATH.format(self.c.name)
-        )
-
-        assert_equal(Client.put.call_args[0][0], url)
 
     def test_info(self):
         assert_equal(
@@ -111,18 +74,10 @@ class TestCollection(TestsBase):
     def test_properties(self):
         self.c.properties(waitForSync=True)
 
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.PROPERTIES_COLLECTION_PATH.format(self.c.name)
-        )
-
-        assert_equal(Client.put.call_args[0][0], url)
-
         test_data = {"waitForSync": True}
         test_args = {"data": json.dumps(test_data)}
 
         self.c.properties(waitForSync=True)
-        assert_equal(Client.put.call_args[0][0], url)
         assert_equal(Client.put.call_args[1], test_args)
 
         self.c.properties()
@@ -132,13 +87,8 @@ class TestCollection(TestsBase):
         test_data = {"name": "test1"}
         test_args = {"data": json.dumps(test_data)}
 
-        url = "{0}{1}".format(
-            self.conn.url,
-            self.c.RENAME_COLLECTION_PATH.format(self.c.name))
-
         self.c.rename(name="test1")
 
-        assert_equal(Client.post.call_args[0][0], url)
         assert_equal(Client.post.call_args[1], test_args)
 
     def test_rename_manual_collection(self):
