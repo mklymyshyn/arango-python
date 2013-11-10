@@ -27,7 +27,8 @@ class TestsIntegration(unittest.TestCase):
         if 'INTEGRATION' not in os.environ:
             raise SkipTest
 
-        self.conn = Connection()
+        self.conn = Connection(db="test")
+        self.conn.database.create()
 
         # enable verbose output for tests
         if "DEBUG_HTTP" in os.environ:
@@ -51,9 +52,8 @@ class TestsIntegration(unittest.TestCase):
 
     def tearDown(self):
         c = self.conn
-
         logger.info("Deleting/Cleaning up collection 'test'")
-        c.collection.test.delete()
+        c.database.delete()
 
     def wait(self, times=1):
         """

@@ -17,12 +17,7 @@ class TestConnectionInit(TestsBase):
         conn = Connection()
 
         assert_equal(conn.prefix, "http://")
-        assert_equal(conn.url, "http://localhost:8529")
-
-        conn.is_https = True
-        conn.port = 1234
-
-        assert_not_equal(conn.url, "https://localhost:1234")
+        assert_equal(conn.url(), "http://localhost:8529")
 
     def test_create_shortcut(self):
         assert_equal(repr(Connection().collection), repr(create()))
@@ -34,12 +29,12 @@ class TestConnectionInit(TestsBase):
         conn.is_https = True
         conn.port = 1234
 
-        assert_equal(conn.url, "https://localhost:1234")
+        assert_equal(conn.url(), "https://localhost:1234")
 
         conn.is_https = False
         conn.port = 9922
 
-        assert_not_equal(conn.url, "http://localhost:9922")
+        assert_not_equal(conn.url(), "http://localhost:9922")
 
     def test_repr(self):
         conn = Connection()
@@ -156,9 +151,6 @@ class TestResultset(TestsBase):
 
         self.rs = Resultset(base=self.Base)
         self.rs.base._cursor = lambda *a, **k: list(range(3))
-
-    def tearDown(self):
-        pass
 
     def test_init(self):
         rs = Resultset(self.Base, 1, 2, field=True, field2=False)

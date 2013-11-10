@@ -9,6 +9,7 @@ except ImportError:
 from .utils import json
 from .clients import Client
 from .cursor import Cursor
+from .db import Database
 
 __all__ = ("Connection", "Response",
            "Resultset")
@@ -34,7 +35,6 @@ class Connection(object):
     VERSION_PATH = "/_api/version"
 
     _prefix = "http://"
-    _url = None
 
     _pass_args = (
         "get",
@@ -45,7 +45,7 @@ class Connection(object):
 
     def __init__(self, host="localhost",
                  port=8529, is_https=False,
-                 client=None, **kwargs):
+                 client=None, db=None, **kwargs):
         """
          - ``client`` - this param provide ability
            to customize HTTP client
@@ -56,6 +56,8 @@ class Connection(object):
         self.client = client or Client
         self.additional_args = kwargs
         self._collection = None
+        self._database_name = db
+        self._database = None
 
     def __getattr__(self, name):
         """Handling different http methods and wrap requests
@@ -86,7 +88,7 @@ class Connection(object):
             """To avoid auto JSON encoding of `data` keywords
             pass `rawData=True` argument
             """
-            url = "{0}{1}".format(self.url, path)
+            url = "{0}{1}".format(self.url(), path)
             logger.debug(
                 "'{method}' request to '{url}'".format(
                     method=method,
@@ -119,24 +121,27 @@ class Connection(object):
         return requests_factory_wrapper
 
     @property
+    def database(self):
+        if self._database is None:
+            self._database = Database(self, self._database_name)
+
+        return self._database
+
+    @property
     def prefix(self):
         return self._prefix
 
-    @property
-    def url(self):
+    def url(self, db_prefix=True):
         """Build URL to the database, only once"""
 
         if self.is_https:
             self._prefix = "https://"
 
-        if not self._url:
-            self._url = "{prefix}{host}:{port}".format(
-                prefix=self.prefix,
-                host=self.host,
-                port=self.port
-            )
-
-        return self._url
+        return "{prefix}{host}:{port}{db_prefix}".format(
+            prefix=self.prefix,
+            host=self.host,
+            port=self.port,
+            db_prefix=self.database.prefix if db_prefix else "")
 
     def qs(self, path, **params):
         """Encode params  as GET argumentd and concat it with path"""
@@ -170,7 +175,7 @@ class Connection(object):
         return Cursor(self, *args, **kwargs)
 
     def __repr__(self):
-        return "<Connection to ArangoDB ({0})>".format(self.url)
+        return "<Connection to ArangoDB ({0})>".format(self.url())
 
 
 class Response(dict):
