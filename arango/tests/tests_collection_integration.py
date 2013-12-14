@@ -44,6 +44,19 @@ class TestsCollection(TestsIntegration):
         created = c.collection.test.create(waitForSync=True)
         assert_true(created.cid in c.collection())
 
+    def test_edges_collection_creation(self):
+        c = self.conn
+        logger.info("Creating edges collection 'test'")
+
+        created = c.collection.test_edges.create_edges()
+        self.wait()
+
+        assert_true(created.cid in c.collection())
+        c.collection.test_edges.delete()
+
+        self.wait()
+        assert_false(created.cid in c.collection())
+
     def test_colletion_deletion(self):
         c = self.conn
 

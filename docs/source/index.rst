@@ -9,6 +9,10 @@ Driver for Python is not entirely completed. It supports
 **Collections**, **Documents**, **Indexes** **Cursors**
 and partially **Edges**.
 
+Presentation about
+`Graph Databases and Python <http://www.slideshare.net/MaxKlymyshyn/odessapy2013-pdf>`_
+with real-world examples how to work with **arango-python**.
+
 .. _arangodb-description:
 
   **ArangoDB** is an open-source database with a flexible data model
@@ -90,7 +94,7 @@ Contents
 
 
 Arango versions, Platforms and Python versions
------------------------------
+----------------------------------------------
 
 Supported versions of ArangoDB: **1.1x** and **1.2x**
 

@@ -53,6 +53,7 @@ class TestCollection(TestsBase):
     def setUp(self):
         super(TestCollection, self).setUp()
         self.c = self.conn.collection.test
+        self.c_e = self.conn.collection.test_edges
 
     def test_cid(self):
         assert_equal(self.c.cid, "test")
@@ -60,7 +61,20 @@ class TestCollection(TestsBase):
     def test_create(self):
         self.c.create()
 
-        test_data = {"name": "test", "waitForSync": False}
+        test_data = {
+            "name": "test", "waitForSync": False,
+            "type": Collections.COLLECTION_DOCUMENTS}
+        test_args = {"data": json.dumps(test_data)}
+
+        assert_true(Client.post.called)
+        assert_equal(Client.post.call_args[1], test_args)
+
+    def test_create_edges(self):
+        self.c_e.create_edges()
+
+        test_data = {
+            "name": "test_edges", "waitForSync": False,
+            "type": Collections.COLLECTION_EDGES}
         test_args = {"data": json.dumps(test_data)}
 
         assert_true(Client.post.called)

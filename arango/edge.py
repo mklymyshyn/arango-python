@@ -7,7 +7,7 @@ from .document import Document
 from .exceptions import EdgeAlreadyCreated, EdgeNotYetCreated, \
     EdgeIncompatibleDataType, \
     DocumentIncompatibleDataType
-from .utils import proxied_document_ref
+from .utils import proxied_document_ref, json
 
 
 logger = logging.getLogger(__name__)
@@ -258,8 +258,7 @@ class Edge(ComparsionMixin):
         params = {
             "collection": self.collection.cid,
             "from": from_doc_id,
-            "to": to_doc_id
-        }
+            "to": to_doc_id}
 
         params.update(kwargs)
 
@@ -274,7 +273,7 @@ class Edge(ComparsionMixin):
                 self.EDGE_PATH,
                 **params
             ),
-            data=body or {})
+            data=json.dumps(body or {}))
 
         # define document ID
         if response.status in [200, 201, 202]:

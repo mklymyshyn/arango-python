@@ -2,7 +2,7 @@ import logging
 
 from .cursor import Cursor
 
-__all__ = ("AQLQuery", "F", "V")
+__all__ = ("AQLQuery", "F", "V", "S")
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,11 @@ class Variable(object):
     """
     def __init__(self, value):
         self.value = value
+        self.invert = False
+
+    def __invert__(self):
+        self.invert = True
+        return self
 
     def __repr__(self):
         return "<AQL Variable: {}>".format(self.value)
@@ -40,7 +45,10 @@ class Func(object):
                 result.append(item.build_query())
                 continue
             if issubclass(type(item), Variable):
-                result.append(item.value)
+                if item.invert is True:
+                    result.append('"{}"'.format(item.value))
+                else:
+                    result.append(item.value)
                 continue
 
             result.append(item)
@@ -74,7 +82,6 @@ class Func(object):
         """
         Proceed list of arguments
         """
-
         return "{}({})".format(self.name, ", ".join(
             self.proceed_list(self.args)))
 
@@ -457,12 +464,14 @@ class AQLQuery(object):
         self._built_query = query
         return query
 
-    def execute(self):
+    def execute(self, wrapper=None):
         """
         Execute query: create cursor, put binded variables
         and return instance of :py:attr:`arango.cursor.Cursor` object
         """
         self.cursor_args.update({"bindVars": self.bind_vars})
+        if wrapper is not None:
+            self.cursor_args.update({"wrapper": wrapper})
 
         return Cursor(
             self.connection, self.build_query(), **self.cursor_args)

@@ -14,7 +14,7 @@ __all__ = ("Collection", "Collections")
 
 class Collections(object):
     """connection) for Collections"""
-
+    COLLECTION_DOCUMENTS, COLLECTION_EDGES = 2, 3
     COLLECTIONS_LIST_URL = "/_api/collection"
 
     def __init__(self, connection):
@@ -217,14 +217,24 @@ class Collection(object):
             self.COLLECTION_DETAILS_PATH.format(self.name, resource)
         ).data
 
-    def create(self, waitForSync=False, **kwargs):
+    def create_edges(self, *args, **kwargs):
+        """
+        Create new **Edges Collection** - sepcial
+        kind of collections to keep information about edges.
+        """
+        kwargs.update({"type": Collections.COLLECTION_EDGES})
+        return self.create(*args, **kwargs)
+
+    def create(self, waitForSync=False,
+               type=Collections.COLLECTION_DOCUMENTS, **kwargs):
         """
         Create new **Collection**. You can specify
         ``waitForSync`` argument (boolean) to wait until
         collection will be synced to disk
         """
         params = {"waitForSync": waitForSync,
-                  "name": self.name}
+                  "name": self.name,
+                  "type": type}
         params.update(kwargs)
 
         response = self.connection.post(

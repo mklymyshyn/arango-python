@@ -27,6 +27,11 @@ It's quite easy to create collection::
 
     assert len(c.collections()) == 1
 
+    # here we creating edges collection
+    c.test_edges.create_edges()
+
+    assert len(c.collections()) == 2
+
 Collection ``test`` being created.
 
 .. note::
@@ -74,7 +79,7 @@ documentation which describe :term:`Collections REST Api`
 
 .. autoclass:: arango.collection.Collection
     :members: cid, info, properties, query,
-              create, delete, rename,
+              create, create_edges, delete, rename,
               count, __len__,
               index, documents, edges,
               load, unload, truncate

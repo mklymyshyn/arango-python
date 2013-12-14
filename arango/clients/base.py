@@ -8,6 +8,10 @@ class RequestsBase(object):
     """
     @classmethod
     def build_response(cls, status, message, headers, body):
+        # NB: py3k
+        if str(type(body)) == "<class 'bytes'>":
+            body = body.decode("utf-8")
+
         d = {
             "text": body,
             "headers": headers,
