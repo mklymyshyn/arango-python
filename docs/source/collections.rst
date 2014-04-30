@@ -9,8 +9,8 @@
 Collections
 -----------
 
-Collections is something similar to tables in SQL databases world. Collection
-consist from **documents** and :ref:`edges`.
+Collections are something similar to tables in SQL databases world. 
+A Collection is a group of **documents** and :ref:`edges`.
 
 It's quite easy to create collection::
 
@@ -57,7 +57,7 @@ For example:
 
 .. testcode::
 
-    # here we creating collection explicitly
+    # here we are creating collection explicitly
     c.test.create()
 
     assert c(), ["test"]
@@ -74,8 +74,8 @@ Collection
 ~~~~~~~~~~
 
 **Arango DB** provide rich API to manipulate collections
-Collection instance methods is quite rich. Here is
-documentation which describe :term:`Collections REST Api`
+Collection instance methods are quite rich. Here is
+documentation which describes :term:`Collections REST Api`
 
 .. autoclass:: arango.collection.Collection
     :members: cid, info, properties, query,

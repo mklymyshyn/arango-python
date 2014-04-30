@@ -3,7 +3,7 @@
 Indexes
 -------
 
-Indexes are used to allow fast access to documents. For each collection there is always the primary index which is a hash index for the document identifier.
+Indexes are used to allow fast access to documents. For each collection there is always the primary index which is a hash index of the document identifiers. 
 
 Usage example::
 

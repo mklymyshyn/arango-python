@@ -25,8 +25,8 @@ documents. The main idea of edges is that you can build your own
 graph (tree) between sets of documents and then perform searches within
 the document hierarchy.
 
-In order to define a vertex, ``from_document`` and ``to_document`` should
-be specified during the creation of the edge:
+In order to define a vertex, a connection between a ``from_document`` and ``to_document`` 
+should be specified during the creation of the edge:
 
 
 .. testcode::
@@ -46,7 +46,7 @@ be specified during the creation of the edge:
         "sample_key1": "sample_value1"
     })
 
-    # creating edge with custom data
+    # creating edge with custom data - (a vertex) 
     c.test.edges.create(from_doc, to_doc, {"custom": 1})
 
 .. warning::
