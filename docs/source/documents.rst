@@ -25,7 +25,7 @@ Usage example:
     c.database.create()  # make sure database exists
     c.test.create()
 
-    # create FROM document
+    # create document
     document = c.test.documents.create({
         "sample_key": "sample_value"
     })
@@ -56,8 +56,8 @@ Below described basic method within ``Documents`` proxy:
 Document
 ~~~~~~~~
 
-Document instance methods consist from basic **CRUD** methods and serveral
-shortcuts to more convenient work with documents.
+Document instance methods consist of basic **CRUD** methods and several
+convience functions that act as shortcuts for more convenient work with documents.
 
 .. autoclass:: arango.document.Document
     :members: id, rev,

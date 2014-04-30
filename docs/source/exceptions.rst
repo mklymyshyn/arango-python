@@ -8,7 +8,7 @@ Exceptions Overview
 -------------------
 
 All ``arango-python`` exceptions are placed into
-``arango.exceptions`` module. Feel free to imprort it like
+``arango.exceptions`` module. Feel free to import it like
 this::
 
     from arango.exceptions import InvalidCollection
@@ -48,7 +48,7 @@ List of exceptions
         Raises in case index type is undefined
 
     ``EmptyFields``
-        Raised in case no fields for index provied
+        Raised in case no fields for index are provided
 
     ``EdgeAlreadyCreated``
         Raised in case Edge have identifier and already created
@@ -62,5 +62,5 @@ List of exceptions
     ``EdgeNotFound``
         Raised in case edge not found in database
 
-    ``DatabaseAlreadyExist``
+    ``DatabaseAlreadyExist``:
         Raised during execution of database creation method

@@ -20,7 +20,7 @@ Glossary
         `HttpIndex <https://github.com/triAGENS/ArangoDB/wiki/HttpIndex>`_
 
     Edges REST Api
-        REST API for manipulate I trought HTTP interface of ArangoDB.
+        REST API for manipulate edges through HTTP interface of ArangoDB.
         Documentation about `RestEdge <https://github.com/triAGENS/ArangoDB/wiki/RestEdge>`_
 
     waitForSync
