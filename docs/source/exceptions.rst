@@ -62,5 +62,5 @@ List of exceptions
     ``EdgeNotFound``
         Raised in case edge not found in database
 
-    ``DatabaseAlreadyExist``:
+    ``DatabaseAlreadyExist`` 
         Raised during execution of database creation method
