@@ -42,7 +42,7 @@ Documents for Collection instance
 
 Documents are accessible via collection instance for example ``connection.collection.sample_collection.documents``. Usually this expressions looks lot shorter.
 
-Basically via `docuemnts` shortcut accessible **Docuemnts Proxy** - Proxy object which have several shortcuts and produce ``Resultset`` object.
+Basically via `documents` shortcut accessible **Docuemnts Proxy** - Proxy object which have several shortcuts and produce ``Resultset`` object.
 
 Below described basic method within ``Documents`` proxy:
 
