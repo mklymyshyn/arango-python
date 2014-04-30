@@ -3,7 +3,7 @@
 Database
 --------
 
-Database is an abstraction over ia single one database within ArangoDB.
+Database is an abstraction over a single one database within ArangoDB.
 With basic API you can **create**, **delete** or **get details** about
 particular database.
 
